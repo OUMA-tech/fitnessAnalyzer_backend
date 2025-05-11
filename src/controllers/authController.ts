@@ -45,7 +45,6 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 export const loginUser = async (req: Request, res: Response):Promise<void>=> {
     try {
         const { email, password } = req.body;
-        
         if (!email || !password) {
             res.status(400).json({ message: 'Email and password are required.' });
             return ;
@@ -76,7 +75,7 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             message: 'Login successful!',
             token,
             user: {
-            id: user._id,
+            userId: user._id,
             username: user.username,
             email: user.email,
             role: user.role,

@@ -5,7 +5,8 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 
 import authRoutes from './routes/authRoutes';
-import bookRoutes from './routes/bookRoutes';
+import recordRoutes from './routes/recordRoutes';
+// import bookRoutes from './routes/bookRoutes';
 // import cartRoutes from './routes/cartRoutes';
 
 const app: Application = express();
@@ -29,7 +30,8 @@ app.use((req, res, next) => {
 app.use(express.json());
 // app.options('*', cors());
 app.use('/api/auth', authRoutes);
-app.use('/api/books', bookRoutes);
+app.use('/api/records', recordRoutes);
+// app.use('/api/books', bookRoutes);
 // app.use('/api/cart', cartRoutes);
 
   

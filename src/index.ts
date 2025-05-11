@@ -7,8 +7,8 @@ import { createRootAdmin } from './utils/initAdmin';
 dotenv.config();
 const PORT = process.env.PORT||5000;
 
-
-
+const JWT = process.env.JWT_SECRET;
+console.log(JWT);
 const startServer = async () => {
   try {
     await connectDB(); // Database Connection

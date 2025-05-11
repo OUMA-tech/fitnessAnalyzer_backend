@@ -7,7 +7,7 @@ interface JwtPayload {
 }
 
 export const protect = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
-  console.log('✅ protect middleware executed');
+  // console.log('✅ protect middleware executed');
   let token;
 
   if (
@@ -17,7 +17,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction):P
     try {
       // get Token
       token = req.headers.authorization.split(' ')[1];
-
       // verify Token 
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
       // return {
