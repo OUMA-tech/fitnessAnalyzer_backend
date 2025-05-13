@@ -1,15 +1,19 @@
 import mongoose from 'mongoose';
 
-interface RecordModel {
+export interface RecordModel {
   userId: string;
+  activityId: number;
+  name: string;
   source: 'apple_watch' | 'garmin' | 'wahoo' | 'manual' | 'other';
-  category: 'running' | 'cycling' | 'swimming' | 'other';
+  type: 'Run' | 'Ride' | 'Swim' | 'WeightTraining' | 'other';
   distance: number; // km
-  duration: number; // min
-  heartRateAvg?: number;
-  elevationGain?: number;
+  movingTime: number; // min
+  elapsedTime: number;
+  averageHeartrate?: number;
+  totalElevationGain?: number;
+  averageSpeed: number;
   calories?: number;
-  timestamp: Date;
+  startDate: Date;
   rawData?: any;
 }
 
@@ -17,15 +21,17 @@ interface RecordModel {
 const recordSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    activityId: { type: Number, required: true },
     source: { type: String, enum: ['apple_watch', 'garmin', 'wahoo', 'manual', 'other'] },
-    activity: { type: String, required: true },
+    name: { type: String, required: true },
     distance: { type: Number, required: true },
-    duration: { type: Number, required: true },
-    category: { type: String, enum: ['cycling', 'running', 'swimming', 'other'], required: true },
-    heartRateAvg: { type: String },  
-    elevationGain: { type: Number },
+    movingTime: { type: Number, required: true },
+    elapsedTime: { type: Number, required: true },
+    type: { type: String, required: true },
+    averageHeartrate: { type: String },  
+    totalElevationGain: { type: Number },
     calories: { type: Number },
-    date: { type: Date, default: Date.now },
+    startDate: { type: Date, default: Date.now },
   },
   {
     timestamps: true,
@@ -40,6 +46,6 @@ recordSchema.index({ date: -1 });
 recordSchema.index({ userId: 1, category: 1 });
 recordSchema.index({ userId: 1, date: -1 });
 
-const Record = mongoose.model('Record', recordSchema);
+const Record = mongoose.model<RecordModel>('Record', recordSchema);
 
 export default Record;

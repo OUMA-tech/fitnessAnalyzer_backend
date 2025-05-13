@@ -1,14 +1,15 @@
 // src/index.ts
+import dotenv from 'dotenv';
+dotenv.config();
+/// <reference path="../types/express.d.ts" />
+
 import app from './app';
 import connectDB from './config/database';
-import dotenv from 'dotenv';
 import { createRootAdmin } from './utils/initAdmin';
 
-dotenv.config();
-const PORT = process.env.PORT||5000;
 
-const JWT = process.env.JWT_SECRET;
-console.log(JWT);
+const PORT = process.env.PORT||5000;
+// console.log(process.env.TOKEN_SECRET_KEY);
 const startServer = async () => {
   try {
     await connectDB(); // Database Connection

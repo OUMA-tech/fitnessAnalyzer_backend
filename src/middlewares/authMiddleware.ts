@@ -7,16 +7,11 @@ interface JwtPayload {
 }
 
 export const protect = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
-  // console.log('✅ protect middleware executed');
-  let token;
+  console.log('✅ protect middleware executed');
+  const token = (req as any).token;
 
-  if (
-    req.headers.authorization && 
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (token) {
     try {
-      // get Token
-      token = req.headers.authorization.split(' ')[1];
       // verify Token 
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
       // return {
@@ -46,7 +41,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction):P
       }
       
       req.user = user;
-      console.log("success");
+      // console.log("success");
       next();
     } catch (error) {
       console.error('Authentication error:', error);

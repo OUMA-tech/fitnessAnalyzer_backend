@@ -80,6 +80,7 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             email: user.email,
             role: user.role,
             lastLogin: user.lastLogin,
+            isAuthStrava: user.isAuthStrava,
             },
         });
     } catch (error) {

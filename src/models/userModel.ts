@@ -11,7 +11,14 @@ export interface UserModel extends Document {
   lastLogin?: Date;              
   status?: 'active' | 'banned';  
   address?: string;              
-  phoneNumber?: string;          
+  phoneNumber?: string;  
+  isAuthStrava: boolean; 
+  strava:{
+    accessToken: string,
+    refreshToken: string,
+    expiresAt: number,       // Unix 时间戳，token 到期时间
+    athleteId: number  
+  }       
 }
 
 const userSchema: Schema = new Schema({
@@ -23,7 +30,14 @@ const userSchema: Schema = new Schema({
   lastLogin: { type: Date },
   status: { type: String, default: 'active' },
   address: { type: String },
-  phoneNumber: { type: String }
+  phoneNumber: { type: String },
+  isAuthStrava: { type: Boolean, default: false},
+  strava: {
+    accessToken: { type: String },
+    refreshToken: { type: String },
+    expiresAt: { type: Number },
+    athleteId: { type: Number },
+  },
 }, { timestamps: true });
 
 userSchema.index({email: 'text'});
