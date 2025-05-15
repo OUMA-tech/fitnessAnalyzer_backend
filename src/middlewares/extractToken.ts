@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export function extractToken(req: Request, res: Response, next: NextFunction):void {
   let token: string | undefined;
-
+  console.log("extracting token......");
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.split(' ')[1];

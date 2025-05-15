@@ -45,11 +45,11 @@ export const protect = async (req: Request, res: Response, next: NextFunction):P
       next();
     } catch (error) {
       console.error('Authentication error:', error);
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        res.status(401).json({ message: 'Unauthorized please login again' });
         return ;
     }
   } else {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(401).json({ message: 'Unauthorized please login' });
     return ;
   }
 };

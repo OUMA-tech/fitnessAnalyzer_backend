@@ -112,7 +112,7 @@ export const fetchStravaActivities = async (req: Request, res: Response):Promise
     res.status(200).json({
       success: true,
       message: 'Fetched Strava activities successfully.',
-      data: filteredRecords,
+      records: filteredRecords,
     });
   } catch (error: any) {
     console.error('Error fetching activities:', error.response?.data || error.message);

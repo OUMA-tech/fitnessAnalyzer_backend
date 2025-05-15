@@ -7,8 +7,8 @@ import morgan from 'morgan';
 import authRoutes from './routes/authRoutes';
 import recordRoutes from './routes/recordRoutes';
 import stravaRoutes from './routes/stravaRoutes'
-// import bookRoutes from './routes/bookRoutes';
-// import cartRoutes from './routes/cartRoutes';
+import trainPlanRoutes from './routes/trainPlanRoutes'
+
 
 const app: Application = express();
 
@@ -32,7 +32,8 @@ app.use(express.json());
 // app.options('*', cors());
 app.use('/api/auth', authRoutes);
 app.use('/api/records', recordRoutes);
-app.use('/api', stravaRoutes);
+app.use('/api/strava', stravaRoutes);
+app.use('/api/trainPlans', trainPlanRoutes);
 // app.use('/api/books', bookRoutes);
 // app.use('/api/cart', cartRoutes);
 

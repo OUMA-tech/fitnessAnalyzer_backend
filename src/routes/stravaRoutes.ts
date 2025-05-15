@@ -7,7 +7,7 @@ import { verifyAccessToken } from '../middlewares/getStravaToken';
 const router = express.Router();
 
 
-router.get('/strava/callback', extractToken, protect, stravaCallback);
-router.get('/strava/records', extractToken, protect,verifyAccessToken, fetchStravaActivities);
+router.get('/callback', extractToken, protect, stravaCallback);
+router.get('/records', extractToken, protect,verifyAccessToken, fetchStravaActivities);
 
 export default router;
