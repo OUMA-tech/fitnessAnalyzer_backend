@@ -1,7 +1,7 @@
 import request from 'supertest';
-import app from '../src/app';
+import app from '../app';
 import mongoose from 'mongoose';
-import UserModel from '../src/models/userModel';
+import UserModel from '../models/userModel';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 // 准备测试用户数据

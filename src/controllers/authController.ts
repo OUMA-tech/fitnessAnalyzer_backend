@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import User, { UserModel } from '../models/userModel';
 import jwt from 'jsonwebtoken';
+import { returnSignedCookies } from '../utils/AWS';
 
 const JWT_SECRET = process.env.JWT_SECRET||'jwt_secret';
 
@@ -69,7 +70,7 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             JWT_SECRET,
             { expiresIn: '1h' } // Token expired in one hour
         );
-    
+
         // login success
         res.status(200).json({
             message: 'Login successful!',
@@ -77,6 +78,7 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             user: {
             userId: user._id,
             username: user.username,
+            avatar: user.avatar,
             email: user.email,
             role: user.role,
             lastLogin: user.lastLogin,
@@ -89,13 +91,6 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
     }    
 };
 
-declare global {
-  namespace Express {
-    export interface Request {
-      user?: UserModel; 
-    }
-  }
-}
 
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
     if (!req.user) {
@@ -113,3 +108,34 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
     });
   };
 
+export const getCookies = async(req:Request, res:Response):Promise<void> => {
+  const cookies = returnSignedCookies();
+  console.log(cookies);
+  res.cookie('CloudFront-Key-Pair-Id', cookies['CloudFront-Key-Pair-Id'], {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none', // <== Must be 'None' for cross-site cookies
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day
+  });
+  
+  
+  res.cookie('CloudFront-Signature', cookies['CloudFront-Signature'], {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+  });
+
+  res.cookie('CloudFront-Expires', cookies['CloudFront-Expires'], {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+  });
+  
+  res.json({ message: 'Cookies set successfully' });
+  
+}

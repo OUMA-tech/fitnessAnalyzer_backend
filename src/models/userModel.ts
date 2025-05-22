@@ -5,7 +5,8 @@ export interface UserModel extends Document {
   email: string;
   password: string;
   profileImage?: string;         
-  role?: 'user' | 'admin';       
+  role?: 'user' | 'admin';  
+  avatar?: string;     
   createdAt?: Date;              
   updatedAt?: Date;              
   lastLogin?: Date;              
@@ -16,7 +17,7 @@ export interface UserModel extends Document {
   strava:{
     accessToken: string,
     refreshToken: string,
-    expiresAt: number,       // Unix 时间戳，token 到期时间
+    expiresAt: number,       
     athleteId: number  
   }       
 }
@@ -25,6 +26,7 @@ const userSchema: Schema = new Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  avatar: { type: String, default: null },
   profileImage: { type: String },
   role: { type: String, default: 'user' },
   lastLogin: { type: Date },

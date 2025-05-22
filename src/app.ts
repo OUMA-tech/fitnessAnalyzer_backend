@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes';
 import recordRoutes from './routes/recordRoutes';
 import stravaRoutes from './routes/stravaRoutes'
 import trainPlanRoutes from './routes/trainPlanRoutes'
+import profileRoutes from './routes/profileRoutes'
 
 
 const app: Application = express();
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/records', recordRoutes);
 app.use('/api/strava', stravaRoutes);
 app.use('/api/trainPlans', trainPlanRoutes);
+app.use('/api/profile', profileRoutes);
 // app.use('/api/books', bookRoutes);
 // app.use('/api/cart', cartRoutes);
 

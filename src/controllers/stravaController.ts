@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-import User from '../models/userModel'; // 根据你的项目结构调整
-import { encrypt } from '../utils/crypto'; // 可选：加密存储 token
+import User from '../models/userModel';
+import { encrypt } from '../utils/crypto';
 import Record, { RecordModel } from '../models/recordModel';
 
 interface StravaApiActivity {
@@ -36,10 +36,9 @@ export const stravaCallback = async (req: Request, res: Response):Promise<void> 
       grant_type: 'authorization_code',
     });
     
-
+    console.log(tokenResponse.data);
     const { access_token, refresh_token, expires_at, athlete } = tokenResponse.data;
-    // 这里根据你当前登录的用户 ID 更新用户的 strava 信息
-    const userId = req.user?.id; // 示例，需你根据实际认证系统调整
+    const userId = req.user?.id; 
     if (!userId) {
       res.status(401).send('Unauthorized');
       return ;
@@ -71,9 +70,9 @@ export const insertActivities = async (records: RecordModel[]) => {
 
   if (newDocs.length > 0) {
     await Record.insertMany(newDocs);
-    console.log(`✅ 插入 ${newDocs.length} 条新活动记录`);
+    console.log(`✅ inserted ${newDocs.length} new records`);
   } else {
-    console.log('📭 无新增记录可插入');
+    console.log('📭 no new records');
   }
 };
 
@@ -99,7 +98,7 @@ export const fetchStravaActivities = async (req: Request, res: Response):Promise
       distance: record.distance,
       movingTime: record.moving_time,
       elapsedTime: record.elapsed_time,
-      startDate: new Date(record.start_date), // 字符串转为 Date 类型
+      startDate: new Date(record.start_date), 
       averageSpeed: record.average_speed,
       averageHeartrate: record.average_heartrate,
       totalElevationGain: record.total_elevation_gain,

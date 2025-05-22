@@ -1,8 +1,8 @@
 import request from 'supertest';
-import app from '../src/app'; // 确保你的 app.ts 导出的是 Express app 对象
+import app from '../app'; // 确保你的 app.ts 导出的是 Express app 对象
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import RecordModel from '../src/models/recordModel';
+import RecordModel from '../models/recordModel';
 
 process.env.TEST_ENV = 'true';
 process.env.JWT_SECRET = 'jwt_secret';

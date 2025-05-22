@@ -25,6 +25,6 @@ const trainPlanSchema = new mongoose.Schema(
 trainPlanSchema.index({ userId: 1 });
 trainPlanSchema.index({ userId: 1, date: -1 });
 
-const SubTask = mongoose.model<TrainPlanModel>('TrainPlan', trainPlanSchema);
+const TrainPlan = mongoose.model<TrainPlanModel>('TrainPlan', trainPlanSchema);
 
-export default SubTask;
+export default TrainPlan;

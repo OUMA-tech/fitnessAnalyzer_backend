@@ -7,9 +7,10 @@ interface SubTask {
   id: number;
   content: string;
   completed: boolean;
+  trainPlanId: string;
 }
 
-export interface Task {
+export interface Plan {
   id: number;
   title: string;
   status: string;
@@ -22,16 +23,16 @@ export const insertTrainPlan = async (req:Request, res:Response) => {
   try{
     const userId = req.user?.id;
     const tasks = req.body.tasks;
-    const trainPlans = tasks.map((task:Task)=>({
-      title:task.title,
-      date:task.date,
+    const trainPlans = tasks.map((plan:Plan)=>({
+      title:plan.title,
+      date:plan.date,
       userId:userId,
-      status: task.status,
+      status: plan.status,
     }));
 
     
     console.log(trainPlans[0]);
-    const insertedTrainPlans = await TrainPlan.insertMany(trainPlans,{ordered:false});
+    const insertedTrainPlans = await TrainPlan.insertMany(trainPlans);
     console.log(`✅ insert  ${insertedTrainPlans.length} new trainPlans`);
     console.log(insertedTrainPlans[0]);
     const subTasks = insertedTrainPlans.flatMap((plan, index)=>
@@ -41,7 +42,7 @@ export const insertTrainPlan = async (req:Request, res:Response) => {
         completed:subTask.completed,
       }))
     )
-    const insertedSubtasks = await SubTask.insertMany(subTasks,{ordered:false});
+    const insertedSubtasks = await SubTask.insertMany(subTasks);
     console.log(`✅ insert  ${insertedSubtasks.length} new subTasks`);
     // console.log(insertedSubtasks[0]);
     res.status(200).json({
@@ -54,19 +55,70 @@ export const insertTrainPlan = async (req:Request, res:Response) => {
   
 };
 
-export const fetchTodayPlan = async (req:Request, res:Response) => {
+// export const fetchTodayPlan = async (req:Request, res:Response) => {
+//   const userId = req.user?.id;
+//   const rawDate = req.query.date;
+//   const objuserId = new mongoose.Types.ObjectId(userId);
+//   if(typeof rawDate === 'string'){
+//   try{
+//     // const result = await TrainPlan.find({userId: userId, date: date});
+//     // // console.log(result);
+//     // console.log(`✅ find  ${result.length} today's plans`);
+//     const plansWithSubtasks = await TrainPlan.aggregate([
+//       { $match: { userId: objuserId, date:new Date(rawDate)} },  
+//       {
+//         $lookup: {
+//           from: "subtasks",             
+//           localField: "_id",            
+//           foreignField: "trainPlanId",  
+//           as: "subTasks",               
+//         },
+//       },
+//     ]);
+//     console.log(plansWithSubtasks);
+//     const result = plansWithSubtasks.map(plan => {
+//       const transformedPlan = {
+//         ...plan,
+//         id: plan._id,
+//         subTasks: plan.subTasks.map((sub:any) => {
+//           const s = { ...sub, id: sub._id };
+//           delete s._id;
+//           return s;
+//         }),
+//       };
+//       delete transformedPlan._id;
+//       return transformedPlan;
+//     });
+//     console.log(result);
+//     res.status(200).json({
+//       success:true,
+//       message:'Insert train plans success',
+//       data: result,
+//     })
+//   }catch(err){
+//     console.log(`find failed: ${err}`);
+//   }
+//   }
+  
+// };
+
+export const fetchDurationPlan = async (req:Request, res:Response) => {
+  console.log("fetch duration plans")
   const userId = req.user?.id;
-  const rawDate = req.query.date;
+  const  { start, end } = req.query;
   const objuserId = new mongoose.Types.ObjectId(userId);
-  if(typeof rawDate === 'string'){
-    const date = new Date(rawDate);
+  if(typeof start === 'string' && typeof end === 'string'){
   
   try{
     // const result = await TrainPlan.find({userId: userId, date: date});
     // // console.log(result);
     // console.log(`✅ find  ${result.length} today's plans`);
     const plansWithSubtasks = await TrainPlan.aggregate([
-      { $match: { userId: objuserId, date:date} },  // 过滤用户
+      { $match: { 
+        userId: objuserId, 
+        date: { $gte: new Date(start), $lte: new Date(end) }
+        }
+      },  
       {
         $lookup: {
           from: "subtasks",             
@@ -77,11 +129,19 @@ export const fetchTodayPlan = async (req:Request, res:Response) => {
       },
     ]);
     console.log(plansWithSubtasks);
-    const result = plansWithSubtasks.map(plan => ({
-      ...plan,
-      id: plan._id,
-      _id: undefined, // 或 delete plan._id
-    }));
+    const result = plansWithSubtasks.map(plan => {
+      const transformedPlan = {
+        ...plan,
+        id: plan._id,
+        subTasks: plan.subTasks.map((sub:any) => {
+          const s = { ...sub, id: sub._id };
+          delete s._id;
+          return s;
+        }),
+      };
+      delete transformedPlan._id;
+      return transformedPlan;
+    });
     console.log(result);
     res.status(200).json({
       success:true,
@@ -91,6 +151,48 @@ export const fetchTodayPlan = async (req:Request, res:Response) => {
   }catch(err){
     console.log(`find failed: ${err}`);
   }
-  }
-  
+  }  
 };
+
+export const updatePlan = async(req:Request, res:Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  const data = req.body.plan;
+  const subtasks = data.subTasks;
+  if(subtasks.length!==0){
+    const trainPlanId = subtasks[0].trainPlanId;
+    console.log(subtasks);
+    try{
+      const operations = subtasks.map((sub:SubTask) => ({
+        updateOne: {
+          filter: { _id: sub.id },
+          update: { $set: { completed: sub.completed } },
+        }
+      }));
+      await SubTask.bulkWrite(operations);
+      const completed = subtasks.every((sub:SubTask)=> sub.completed);
+      const newStatus = completed ? 'completed' : 'draft';
+
+      await TrainPlan.updateOne(
+        { _id: trainPlanId },
+        { $set: { status: newStatus } }
+      );
+      await session.commitTransaction();
+      res.status(200).json({
+        success:true,
+        message:'update plan success',
+      })
+    }catch(err){
+      console.log("update plans failed:",err);
+      await session.abortTransaction();
+    }
+    finally {
+      session.endSession();
+    }
+  }else {
+    res.status(400).json({
+      success:false,
+      message:'empty request',
+    })
+  }
+}
