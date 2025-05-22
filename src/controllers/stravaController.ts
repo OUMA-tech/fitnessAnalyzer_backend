@@ -21,7 +21,7 @@ interface StravaApiActivity {
 
 export const stravaCallback = async (req: Request, res: Response):Promise<void> => {
   const code = req.query.code;
-  const returnTo = 'http://localhost:5173/dashboard';
+  const returnTo = 'https://fitness-analyzer-fronend.vercel.app/dashboard';
 
   if (!code) {
     res.status(400).send('Missing authorization code');
@@ -53,7 +53,7 @@ export const stravaCallback = async (req: Request, res: Response):Promise<void> 
       },
     });
 
-    res.redirect(`${returnTo}?strava=success`);
+    res.redirect(`${returnTo}`);
   } catch (error) {
     // console.error('Strava OAuth callback error:', error);
     res.redirect(`${returnTo}?strava=fail`);

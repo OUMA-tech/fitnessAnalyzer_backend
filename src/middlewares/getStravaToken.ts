@@ -23,7 +23,7 @@ const refreshStravaToken = async (user:UserModel,refreshToken:string) => {
   await user.save();
   return newToken.access_token;
   } catch (err) {
-    console.error("请求失败", err);
+    console.error("request failed", err);
   }
 } 
 
