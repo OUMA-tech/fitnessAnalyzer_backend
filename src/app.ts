@@ -15,7 +15,8 @@ const app: Application = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: '
+https://fitness-analyzer-fronend-59mzv667m-ouma-techs-projects.vercel.app/',
   credentials: true
 }));
 app.use(bodyParser.json());
