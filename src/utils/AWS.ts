@@ -15,10 +15,8 @@ export const s3 = new S3Client({
 });
 
 export const returnSignedCookies = () => {
-  const keypath:string = process.env.AWS_CLOUDFRONT_PRIVATEKEY_PATH||"";
-  // Read private key
-  const privateKeyPath = path.resolve(__dirname, keypath);
-  const privateKey = fs.readFileSync(privateKeyPath, "utf8");
+
+  const privateKey = process.env.AWS_CLOUDFRONT_PRIVATEKEY!;
   
   // Parameters
   const cloudfrontUrl = process.env.COULDFRONT_URL||"";
