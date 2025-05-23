@@ -6,7 +6,8 @@ import app from './app';
 import connectDB from './config/database';
 import { createRootAdmin } from './utils/initAdmin';
 
-
+console.log('ACCESS_KEY:', process.env.AWS_ACCESS_KEY_ID);
+console.log('SECRET:', process.env.AWS_SECRET_ACCESS_KEY);
 const PORT = process.env.PORT||5000;
 // console.log(process.env.TOKEN_SECRET_KEY);
 const startServer = async () => {
