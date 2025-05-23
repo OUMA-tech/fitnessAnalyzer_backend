@@ -21,7 +21,7 @@ interface StravaApiActivity {
 
 export const stravaCallback = async (req: Request, res: Response):Promise<void> => {
   const code = req.query.code;
-  const returnTo = 'https://fitness-analyzer-fronend.vercel.app/dashboard';
+  const returnTo = 'https://fitness-analyzer-fronend.vercel.app/#/dashboard';
 
   if (!code) {
     res.status(400).send('Missing authorization code');

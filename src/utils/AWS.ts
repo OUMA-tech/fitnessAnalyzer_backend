@@ -5,9 +5,13 @@ import { getSignedCookies } from "@aws-sdk/cloudfront-signer";
 import fs from 'fs';
 import path from 'path';
 
+
 export const s3 = new S3Client({
-  region: "ap-southeast-2", // or your region
-  credentials: fromNodeProviderChain(), // Automatically picks up AWS_PROFILE=developer + SSO
+  region: 'ap-southeast-2',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
 });
 
 export const returnSignedCookies = () => {
@@ -20,7 +24,8 @@ export const returnSignedCookies = () => {
   const cloudfrontUrl = process.env.COULDFRONT_URL||"";
   const keyPairId = process.env.KEYPAIR_ID||""; // From CloudFront public key
   const expires = Math.floor((Date.now() + 3 * 60 * 60 * 1000) / 1000); // 3 hours from now
-  
+
+
   const signedCookie = getSignedCookies({
     keyPairId,
     privateKey,
