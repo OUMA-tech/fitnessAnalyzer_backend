@@ -3,7 +3,7 @@ import { encrypt,decrypt } from '../utils/crypto'; // 假设你有一个函数�
 import User, { UserModel } from '../models/userModel';
 import axios from 'axios';
 
-const refreshStravaToken = async (user:UserModel,refreshToken:string) => {
+export const refreshStravaToken = async (user:UserModel,refreshToken:string) => {
   console.log("refreshing token.............");
 
   try{
