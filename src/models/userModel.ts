@@ -42,6 +42,5 @@ const userSchema: Schema = new Schema({
   },
 }, { timestamps: true });
 
-userSchema.index({'email': 1});
-userSchema.index({ 'strava.athleteId': 1 });
+userSchema.index({email: 'text'});
 export default mongoose.model<UserModel>('User', userSchema);
