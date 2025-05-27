@@ -3,6 +3,8 @@ import axios from 'axios';
 import User from '../models/userModel';
 import { encrypt } from '../utils/crypto';
 import Record, { RecordModel } from '../models/recordModel';
+import { decrypt } from '../utils/crypto';
+import { refreshStravaToken } from '../middlewares/getStravaToken';
 
 interface StravaApiActivity {
   id: number;
@@ -118,3 +120,107 @@ export const fetchStravaActivities = async (req: Request, res: Response):Promise
     throw error;
   }
 }
+
+export const subscriptionValidation = async (req: Request, res: Response):Promise<void> => {
+  console.log("subsription validation............");
+  console.log(req.query);
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  if (mode === 'subscribe' && token === process.env.STRAVA_VERIFY_TOKEN) {
+    res.status(200).json({ 'hub.challenge': challenge });
+  } else {
+    res.status(403).send('Verification failed');
+  }
+  return;
+
+}
+
+export const stravaWebHook = async (req: Request, res: Response):Promise<void> => {
+  console.log("message from strava web hook..........");
+  const event = req.body;
+  console.log(event);
+  if (event.object_type !== 'activity') {
+    res.status(200).send('Ignored non-activity event');
+    return ;
+  }
+
+  try {
+    console.log('✅ Received Strava Event:', event);
+    // TODO use eventId to fetch this event and save to database
+    const athleteId = event.owner_id;
+    const aspect = event.aspect_type;
+    const activityId = event.object_id;
+
+    const user = await User.findOne({ 'strava.athleteId': athleteId });
+    if (!user) {
+      console.warn(`No user found for Strava athleteId: ${athleteId}`);
+      res.status(200).send('User not found, ignored.');
+      return ;
+    }
+
+    let accessToken;
+    const isExpired = Date.now() / 1000 > user.strava.expiresAt;
+    if(isExpired){
+      accessToken=refreshStravaToken(user,decrypt(user.strava.refreshToken));
+    } else{
+      const encryptedAccessToken = user.strava.accessToken;
+      if (!encryptedAccessToken) {
+        res.status(401).json({ message: 'Access token not found' });
+        return ;
+      }
+  
+      accessToken = decrypt(encryptedAccessToken);
+    }
+
+    if (!accessToken) {
+      res.status(401).json({ message: 'Invalid access token' });
+      return ;
+    }
+
+    const activityResponse = await axios.get(`https://www.strava.com/api/v3/activities/${activityId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const record = activityResponse.data;
+    const filteredRecord = {
+      userId: user._id,
+      activityId: record.id,
+      name: record.name,
+      type: record.type,
+      distance: record.distance,
+      movingTime: record.moving_time,
+      elapsedTime: record.elapsed_time,
+      startDate: new Date(record.start_date),
+      averageSpeed: record.average_speed,
+      averageHeartrate: record.average_heartrate,
+      totalElevationGain: record.total_elevation_gain,
+      calories: record.kilojoules,
+    };
+    if(aspect === 'create'){
+      await Record.create(
+        filteredRecord
+      );
+    }else if(aspect === 'update'){
+      await Record.findOneAndUpdate(
+        { activityId: record.id },
+        filteredRecord,
+        { upsert: true, new: true }
+      );
+    }else if(aspect === 'delete'){
+      Record.findOneAndDelete(
+        { activityId: record.id }
+      )
+    }
+
+    res.status(200).send('OK');
+  } catch (err) {
+    console.error('❌ Failed to handle Strava webhook event:', err);
+    res.status(500).send('Failed to process event');
+  }
+  
+}
+
