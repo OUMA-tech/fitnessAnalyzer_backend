@@ -15,7 +15,7 @@ const app: Application = express();
 
 // Middleware
 app.use(cors({
-  origin: 'https://fitnessanalyzer-backend.onrender.com',
+  origin: 'https://fitness-analyzer-fronend.vercel.app',
   credentials: true
 }));
 app.use(bodyParser.json());
