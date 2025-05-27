@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/callback', extractToken, protect, stravaCallback);
 router.get('/records', extractToken, protect,verifyAccessToken, fetchStravaActivities);
-router.get('/stravaWebHook', subscriptionValidation);
-router.post('/stravaWebHook', stravaWebHook);
+router.get('/webHook', subscriptionValidation);
+router.post('/webHook', stravaWebHook);
 
 export default router;
