@@ -63,7 +63,7 @@ export const stravaCallback = async (req: Request, res: Response):Promise<void> 
 };
 
 export const insertActivities = async (records: RecordModel[]) => {
-  console.log(records[0]);
+  // console.log(records[0]);
   const existing = await Record.find({ activityId: { $in: records.map(d => d.activityId) } }).select('stravaId');
   const existingIds = new Set(existing.map(e => e.activityId));
   const newDocs = records

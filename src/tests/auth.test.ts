@@ -51,6 +51,42 @@ describe('POST /api/auth/register', () => {
 
     expect(response.status).toBe(500); // 或者 422，如果你有验证中间件
   });
+
+  it('should validate email format', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({
+        email: 'invalid-email',
+        username: 'testuser',
+        password: 'Test1234!'
+      });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('should validate password strength', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({
+        email: 'test@example.com',
+        username: 'testuser',
+        password: '123' // 太短的密码
+      });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('should validate username length', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({
+        email: 'test@example.com',
+        username: 'a', // 太短的用户名
+        password: 'Test1234!'
+      });
+
+    expect(response.status).toBe(400);
+  });
 });
 
 describe('POST /api/auth/login', () => {

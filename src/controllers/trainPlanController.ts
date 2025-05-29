@@ -32,10 +32,10 @@ export const insertTrainPlan = async (req:Request, res:Response) => {
     }));
 
     
-    console.log(trainPlans[0]);
+    // console.log(trainPlans[0]);
     const insertedTrainPlans = await TrainPlan.insertMany(trainPlans);
     console.log(`✅ insert  ${insertedTrainPlans.length} new trainPlans`);
-    console.log(insertedTrainPlans[0]);
+    // console.log(insertedTrainPlans[0]);
     const subTasks = insertedTrainPlans.flatMap((plan, index)=>
       tasks[index].subTasks.map((subTask:SubTask)=>({
         trainPlanId:plan._id,

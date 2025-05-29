@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import User, { UserModel } from '../models/userModel';
-import jwt from 'jsonwebtoken';
 import { returnSignedCookies } from '../utils/AWS';
-
-const JWT_SECRET = process.env.JWT_SECRET||'jwt_secret';
+import { generateToken } from '../utils/auth';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -15,22 +13,19 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
       if (existingUser) {
         res.status(400).json({ message: 'User already exists' });
-        return ;
+        return;
       }
   
       // password encrypt
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
   
-      // create user
-      const newUser = new User({
+      // create and save user
+      await User.create({
         username,
         email,
         password: hashedPassword,
       });
-  
-      // save to db
-      await newUser.save();
       
       res.status(201).json({ message: 'User registered successfully!' });
     } catch (error: unknown) {
@@ -39,7 +34,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
           } else {
             console.error('Registration error: Unknown error');
           }
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ message: 'Error registering user' });
     }
 };
 
@@ -65,11 +60,7 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             return ;
           }
           // generate JWT Token
-        const token = jwt.sign(
-            { userId: user._id, email: user.email, role: user.role },
-            JWT_SECRET,
-            { expiresIn: '1h' } // Token expired in one hour
-        );
+          const token = generateToken(user);
 
         // login success
         res.status(200).json({
@@ -87,7 +78,7 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
         });
     } catch (error) {
         console.error('Login error:', (error as Error).message);
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ message: 'Error logging in' });
     }    
 };
 

@@ -3,6 +3,7 @@ import app from '../app'; // 确保你的 app.ts 导出的是 Express app 对象
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import RecordModel from '../models/recordModel';
+import Record from '../models/recordModel';
 
 process.env.TEST_ENV = 'true';
 process.env.JWT_SECRET = 'jwt_secret';
@@ -23,18 +24,33 @@ beforeAll(async () => {
   const uri = mongo.getUri();
   await mongoose.connect(uri);
 
-  await request(app)
-  .post('/api/auth/register')
-  .send(testUser);
+  // Register user
+  const registerResponse = await request(app)
+    .post('/api/auth/register')
+    .send(testUser);
+  
+  console.log('Register Response:', registerResponse.body);
+  
+  if (registerResponse.status !== 201) {
+    throw new Error(`Registration failed: ${JSON.stringify(registerResponse.body)}`);
+  }
 
+  // Login user
   const loginResponse = await request(app)
-      .post('/api/auth/login') 
-      .send({ email: 'testuser@example.com', password: 'Test1234!' });
+    .post('/api/auth/login') 
+    .send({ email: testUser.email, password: testUser.password });
+
+  console.log('Login Response:', loginResponse.body);
+
+  if (loginResponse.status !== 200 || !loginResponse.body.user) {
+    throw new Error(`Login failed: ${JSON.stringify(loginResponse.body)}`);
+  }
 
   token = loginResponse.body.token;
   userId = loginResponse.body.user.userId;
-  console.log(userId);
-  await RecordModel.create({
+  
+  // Create test record
+  const record = await Record.create({
     userId,
     source: 'apple_watch',
     activity: 'morning run',
@@ -45,6 +61,8 @@ beforeAll(async () => {
     elevationGain: 100,
     calories: 300,
   });
+
+  console.log('Created test record:', record);
 });
 
 
