@@ -1,6 +1,6 @@
 import express from 'express';
 import { getWeeklyNutrition, getActivityNutrition } from '../controllers/nutritionController';
-import { protect } from '../middlewares/auth';
+import { protect } from '../middlewares/authMiddleware';
 import { extractToken } from '../middlewares/extractToken';
 
 const router = express.Router();

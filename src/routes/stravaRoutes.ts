@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middlewares/auth';
+import { protect } from '../middlewares/authMiddleware';
 import { extractToken } from '../middlewares/extractToken';
 import { fetchStravaActivities, stravaCallback, stravaWebHook, subscriptionValidation } from '../controllers/stravaController';
 import { verifyAccessToken } from '../middlewares/getStravaToken';

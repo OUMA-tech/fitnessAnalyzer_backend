@@ -32,7 +32,6 @@ const calculateNutritionRecommendation = (averageIntensity: number, activityType
   let proteinPercentage = 25; // 基础蛋白质比例
   let fatsPercentage = 25; // 基础脂肪比例
 
-  // 根据运动强度调整
   if (averageIntensity > 0.7) { // 高强度
     carbsPercentage = 60;
     proteinPercentage = 25;
@@ -69,25 +68,26 @@ const calculateNutritionRecommendation = (averageIntensity: number, activityType
 
 // 获取周度营养建议
 export const getWeeklyNutrition = async (req: Request, res: Response): Promise<void> => {
+  console.log("get weekly nutrition........");
   try {
     const { start, end } = req.query;
     const userId = (req as any).user._id;
-
+    console.log(userId);
     const records = await Record.find({
       userId,
-      date: {
+      startDate: {
         $gte: new Date(start as string),
         $lte: new Date(end as string)
       }
     }).lean();
-
+    console.log(records);
     if (!records.length) {
         res.status(404).json({
         success: false,
         message: 'can not find records'
       });
+      return;
     }
-
     // 计算每个记录的强度
     const recordsWithIntensity = records.map(record => ({
       ...record,
@@ -118,16 +118,17 @@ export const getWeeklyNutrition = async (req: Request, res: Response): Promise<v
     });
   } catch (error) {
     console.error('get weekly nutrition failed:', error);
-    res.status(500).json({
-      success: false,
-      message: 'get weekly nutrition failed'
-    });
+    // res.status(500).json({
+    //   success: false,
+    //   message: 'get weekly nutrition failed'
+    // });
   }
 };
 
 // 获取单个活动的营养建议
 export const getActivityNutrition = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log("get activity nutrition advice.......")
     const { activityId } = req.params;
     const userId = (req as any).user._id;
 
@@ -163,9 +164,9 @@ export const getActivityNutrition = async (req: Request, res: Response): Promise
     });
   } catch (error) {
     console.error('get activity nutrition failed:', error);
-    res.status(500).json({
-      success: false,
-      message: 'get activity nutrition failed'
-    });
+    // res.status(500).json({
+    //   success: false,
+    //   message: 'get activity nutrition failed'
+    // });
   }
 }; 

@@ -1,7 +1,6 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel';
-import type { Request } from 'express-serve-static-core';
 
 interface JwtPayload {
   userId: string;
@@ -10,7 +9,6 @@ interface JwtPayload {
 export const protect = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
   console.log('✅ protect middleware executed');
   const token = (req as any).token;
-  // console.log(token);
 
   if (token) {
     try {
@@ -23,7 +21,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction):P
       //   iat: 1746689337,
       //   exp: 1746692937
       // }
-      console.log(decoded);
+
       // check whether user is active
       const user = await User.findById(decoded.userId).select('-password');
       // return {
@@ -36,7 +34,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction):P
       //   updatedAt: 2025-05-08T03:45:54.606Z,
       //   __v: 0
       // }
-      console.log(user);
+
       if (!user || user.status !== 'active') {
         res.status(403).json({ message: 'User is not active' });
         return ;
