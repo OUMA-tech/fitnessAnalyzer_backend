@@ -27,10 +27,10 @@ export const getRecords = async (req: Request, res: Response):Promise<void> => {
     console.log(filter);
     const total = await Record.countDocuments(filter);
     const records = await Record.find(filter)
-      .sort({ date: -1 })
+      .sort({ startDate: -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize);
-
+    console.log('records', records);
     res.status(200).json({
       records,
       page,
