@@ -63,7 +63,7 @@ const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
 
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://fitness-analyzer-fronend.vercel.app',
   credentials: true
 }));
 app.use(bodyParser.json());
