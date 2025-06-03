@@ -14,11 +14,12 @@ export interface UserModel extends Document {
   address?: string;              
   phoneNumber?: string;  
   isAuthStrava: boolean; 
-  strava:{
-    accessToken: string,
-    refreshToken: string,
-    expiresAt: number,       
-    athleteId: number  
+  isEmailVerified: boolean;
+  strava: {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: number;
+    athleteId: number;
   }       
 }
 
@@ -34,6 +35,7 @@ const userSchema: Schema = new Schema({
   address: { type: String },
   phoneNumber: { type: String },
   isAuthStrava: { type: Boolean, default: false},
+  isEmailVerified: { type: Boolean, default: false },
   strava: {
     accessToken: { type: String },
     refreshToken: { type: String },
