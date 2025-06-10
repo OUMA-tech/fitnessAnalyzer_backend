@@ -1,13 +1,17 @@
 import express from 'express';
 import { protect } from '../middlewares/authMiddleware';
 import { extractToken } from '../middlewares/extractToken';
-import { stravaCallback, stravaWebHook, subscriptionValidation } from '../controllers/stravaController';
+import { ApiContainer } from '../container/api.container';
+import { createStravaController } from '../controllers/stravaController';
 
-const router = express.Router();
 
+export const createStravaRoutes = (container: ApiContainer) => {
+    const router = express.Router();
+    const stravaController = createStravaController(container.stravaActivityService, container.userMapper);
+    router.get('/', extractToken, protect, stravaController.getStravaActivities);
+    router.get('/callback', extractToken, protect, stravaController.stravaCallback);
+    router.get('/webHook', stravaController.subscriptionValidation);
+    router.post('/webHook', stravaController.stravaWebHook);
 
-router.get('/callback', extractToken, protect, stravaCallback);
-router.get('/webHook', subscriptionValidation);
-router.post('/webHook', stravaWebHook);
-
-export default router;
+    return router;
+}

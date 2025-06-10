@@ -1,7 +1,7 @@
-import Record, { RecordModel } from "../models/recordModel";
+import Record, { RecordModel } from "../models/stravaActivityModel";
 import axios from "axios";
 import { encrypt, decrypt } from "../utils/crypto";
-import User, { UserModel } from "../models/userModel";
+import { UserModel } from "../models/userModel";
 
 interface StravaApiActivity {
     id: number;

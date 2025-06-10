@@ -1,5 +1,5 @@
-import redisClient from '../config/redis';
-import { addEmailToQueue } from '../queues/emailQueue';
+import redisClient from '../../config/redis';
+import { addEmailToQueue } from '../../queues/emailQueue';
 
 // 验证码类型
 type VerificationType = 'verification' | 'password_reset';

@@ -1,27 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface UserModel extends Document {
-  username: string;
-  email: string;
-  password: string;
-  profileImage?: string;         
-  role?: 'user' | 'admin';  
-  avatar?: string;     
-  createdAt?: Date;              
-  updatedAt?: Date;              
-  lastLogin?: Date;              
-  status?: 'active' | 'banned';  
-  address?: string;              
-  phoneNumber?: string;  
-  isAuthStrava: boolean; 
-  isEmailVerified: boolean;
-  strava: {
-    accessToken: string;
-    refreshToken: string;
-    expiresAt: number;
-    athleteId: number;
-  }       
-}
+import mongoose, { Schema } from 'mongoose';
+import { UserModel } from '../interfaces/entity/user';
 
 const userSchema: Schema = new Schema({
   username: { type: String, required: true },
@@ -36,6 +14,7 @@ const userSchema: Schema = new Schema({
   phoneNumber: { type: String },
   isAuthStrava: { type: Boolean, default: false},
   isEmailVerified: { type: Boolean, default: false },
+  stripeCustomerId: { type: String, sparse: true },
   strava: {
     accessToken: { type: String },
     refreshToken: { type: String },
@@ -45,4 +24,5 @@ const userSchema: Schema = new Schema({
 }, { timestamps: true });
 
 userSchema.index({email: 'text'});
+
 export default mongoose.model<UserModel>('User', userSchema);

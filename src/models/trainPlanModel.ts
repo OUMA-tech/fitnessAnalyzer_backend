@@ -1,16 +1,10 @@
-import mongoose from 'mongoose';
-
-export interface TrainPlanModel {
-  userId: string;
-  title: string;
-  date: Date;
-  status: string;
-}
+import mongoose, { Types } from 'mongoose';
+import { TrainPlanModel } from '../interfaces/entity/trainPlan';
 
 
 const trainPlanSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true },
     date: { type: Date, default: Date.now },
     status: { type: String,   enum: ['draft', 'planned', 'completed'],

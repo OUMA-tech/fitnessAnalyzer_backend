@@ -1,14 +1,9 @@
-import mongoose from 'mongoose';
-
-export interface SubTaskModel {
-  trainPlanId: number;
-  content: string;
-  completed: boolean;
-}
+import mongoose, { Types } from 'mongoose';
+import { SubTaskModel } from '../interfaces/entity/subTask';
 
 const subTaskSchema = new mongoose.Schema(
   {
-    trainPlanId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    trainPlanId: { type: Types.ObjectId, required: true },
     content: { type: String, },
     completed: { type: Boolean, default: false },
   },

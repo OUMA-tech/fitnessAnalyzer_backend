@@ -1,9 +1,9 @@
 // src/config/database.ts
 import mongoose from 'mongoose';
 
-const connectDB = async () => {
+const connectDB = async (mongoUri: string) => {
   try {
-    await mongoose.connect(process.env.MONGO_URI as string);
+    await mongoose.connect(mongoUri);
     console.log('✅ MongoDB Connected');
   } catch (error) {
     console.error(`❌ DB Connection Error: ${error}`);

@@ -1,8 +1,45 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import User, { UserModel } from '../models/userModel';
+import User from '../models/userModel';
 import { returnSignedCookies } from '../utils/AWS';
-import { generateToken } from '../utils/auth';
+import { generateToken } from '../utils/jwt';
+import Subscription from '../models/subscriptionModel';
+import { UserModel } from '../interfaces/entity/user';
+import { AuthService } from '../services/auth/authService.interface';
+
+const DEFAULT_SUBSCRIPTION = {
+  status: 'free',
+  planId: null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false
+};
+
+export const createAuthController = (authService: AuthService) => {
+
+  return {
+    register: async (req: Request, res: Response) => {
+      try {
+        const { username, email, password } = req.body;
+        const user = await authService.register({ username, email, password });
+        res.status(201).json({ message: 'User registered successfully!' });
+      } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ message: 'Error registering user' });
+      }
+    },
+    login: async (req: Request, res: Response) => {
+      try {
+        const { email, password } = req.body;
+        const user = await authService.login({ email, password });
+        res.status(200).json(user);
+      } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Error logging in' });
+      }
+
+    }
+  };
+};
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -21,11 +58,16 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       const hashedPassword = await bcrypt.hash(password, saltRounds);
   
       // create and save user
-      await User.create({
+      const user = await User.create({
         username,
         email,
         password: hashedPassword,
       });
+
+      // const subscription = await createSubscription({
+      //   userId: user.id,
+      //   ...DEFAULT_SUBSCRIPTION
+      // });
       
       res.status(201).json({ message: 'User registered successfully!' });
     } catch (error: unknown) {
@@ -60,7 +102,10 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             return ;
           }
           // generate JWT Token
-          const token = generateToken(user);
+          const token = generateToken(user, jwtConfig);
+
+          // get subscription
+          const subscription = await Subscription.findOne({ userId: user._id });
 
         // login success
         res.status(200).json({
@@ -74,7 +119,10 @@ export const loginUser = async (req: Request, res: Response):Promise<void>=> {
             role: user.role,
             lastLogin: user.lastLogin,
             isAuthStrava: user.isAuthStrava,
-            },
+            
+          
+          },
+            subscription,
         });
     } catch (error) {
         console.error('Login error:', (error as Error).message);
@@ -99,34 +147,3 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
     });
   };
 
-export const getCookies = async(req:Request, res:Response):Promise<void> => {
-  const cookies = returnSignedCookies();
-  console.log(cookies);
-  res.cookie('CloudFront-Key-Pair-Id', cookies['CloudFront-Key-Pair-Id'], {
-    path: '/',
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none', // <== Must be 'None' for cross-site cookies
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day
-  });
-  
-  
-  res.cookie('CloudFront-Signature', cookies['CloudFront-Signature'], {
-    path: '/',
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
-  });
-
-  res.cookie('CloudFront-Expires', cookies['CloudFront-Expires'], {
-    path: '/',
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
-  });
-  
-  res.json({ message: 'Cookies set successfully' });
-  
-}
