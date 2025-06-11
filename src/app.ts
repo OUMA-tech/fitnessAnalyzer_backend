@@ -63,7 +63,7 @@ const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
 
 
 app.use(cors({
-  origin: 'https://.fit-tracker.fyi',
+  origin: 'https://fit-tracker.fyi',
   credentials: true
 }));
 app.use(bodyParser.json());
