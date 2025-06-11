@@ -1,0 +1,40 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main  # 每次 push 到 main 分支就部署
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'  # 改成你的 node 版本
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project (if needed)
+        run: npm run build  # 没有 build 可以删掉这一行
+
+      - name: Zip project
+        run: |
+          zip -r app.zip . -x "*.git*" -x "*node_modules*" -x "*.github*"
+
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: fit-tracker-backend -prod       # 改成你的 EB 应用名
+          environment_name: fit-tracker-backend-prod-env   # 改成你的 EB 环境名
+          region: ap-southeast-2                       # 改成你所在 AWS 区域
+          version_label: v-${{ github.run_number }}
+          deployment_package: app.zip
