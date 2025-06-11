@@ -21,7 +21,7 @@ import nutritionRoutes from './routes/nutritionRoutes'
 const app: Application = express();
 
 // Load Swagger document
-const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+const swaggerDocument = YAML.load(path.join(__dirname, './swagger.yaml'));
 
 // Security Middleware
 // // 1. Helmet for basic security headers

@@ -1,0 +1,22 @@
+# .ebextensions/01-docker.config
+packages:
+  yum:
+    docker: []
+
+services:
+  sysvinit:
+    docker:
+      enabled: true
+      ensureRunning: true
+      files:
+        - path: /etc/sysconfig/docker
+          content: |
+            OPTIONS='--selinux-enabled=false'
+
+commands:
+  start_docker:
+    command: service docker start
+
+container_commands:
+  run_redis_container:
+    command: docker run -d --name redis -p 6379:6379 redis:latest
