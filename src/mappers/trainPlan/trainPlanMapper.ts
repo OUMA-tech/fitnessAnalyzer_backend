@@ -1,10 +1,8 @@
-import { Model } from "mongoose";
-import { TrainPlanModel } from "../../interfaces/entity/trainPlan";
+import { TrainPlanDto, TrainPlanInput } from "../../interfaces/entity/trainPlan";
+import { TrainPlanModel } from "../../models/trainPlanModel";
 
 export interface TrainPlanMapper {
-    findById: (id: string) => Promise<TrainPlanModel | null>;
-    findByUserId: (userId: string) => Promise<TrainPlanModel[]>;
-    create: (trainPlan: TrainPlanModel) => Promise<TrainPlanModel>;
-    update: (id: string, trainPlan: TrainPlanModel) => Promise<TrainPlanModel | null>;
-    delete: (id: string) => Promise<boolean>;
+    findByDateRange: (userId: string, start: string, end: string) => Promise<TrainPlanDto[]>;
+    insertMany: (trainPlans: TrainPlanInput[]) => Promise<TrainPlanModel[]>;
+    updateCompleted: (trainPlanId: string, updateData: any, session?: any) => Promise<void>;
 }

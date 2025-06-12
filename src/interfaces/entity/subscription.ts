@@ -1,7 +1,7 @@
-import { Document, Types } from 'mongoose';
 
-export interface SubscriptionModel extends Document {
-    userId: Types.ObjectId;
+export interface SubscriptionDto {
+    id: string;
+    userId: string;
     stripeCustomerId: string;
     stripeSubscriptionId: string;
     planId: string|null;

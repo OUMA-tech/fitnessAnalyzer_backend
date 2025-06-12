@@ -1,5 +1,29 @@
-import mongoose, { Schema } from 'mongoose';
-import { UserModel } from '../interfaces/entity/user';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+
+export interface UserModel extends Document {
+    _id: Types.ObjectId;
+    username: string;
+    email: string;
+    password: string;
+    profileImage?: string;         
+    role?: 'user' | 'admin';  
+    avatar?: string;     
+    createdAt?: Date;              
+    updatedAt?: Date;              
+    lastLogin?: Date;              
+    status?: 'active' | 'banned';  
+    address?: string;              
+    phoneNumber?: string;  
+    isAuthStrava: boolean; 
+    isEmailVerified: boolean;
+    stripeCustomerId?: string;
+    strava: {
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: number;
+      athleteId: number;
+    }       
+  }
 
 const userSchema: Schema = new Schema({
   username: { type: String, required: true },
@@ -22,6 +46,24 @@ const userSchema: Schema = new Schema({
     athleteId: { type: Number },
   },
 }, { timestamps: true });
+
+userSchema.set('toJSON', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    delete ret._id;
+  },
+});
+
+userSchema.set('toObject', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    delete ret._id;
+  },
+});
 
 userSchema.index({email: 'text'});
 

@@ -1,6 +1,22 @@
-import mongoose from 'mongoose';
-import { StravaActivityModel } from '../interfaces/entity/stravaActivity';
+import mongoose, { Document, Types } from 'mongoose';
 
+export interface StravaActivityModel extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  activityId: number;
+  name: string;
+  source: 'apple_watch' | 'garmin' | 'wahoo' | 'manual' | 'other';
+  type: string;
+  distance: number; // km
+  movingTime: number; // min
+  elapsedTime: number;
+  averageHeartrate?: number;
+  totalElevationGain?: number;
+  averageSpeed: number;
+  calories?: number;
+  startDate: Date;
+  rawData?: any;
+}
 
 const stravaActivitySchema = new mongoose.Schema(
   {
@@ -21,6 +37,26 @@ const stravaActivitySchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+stravaActivitySchema.set('toJSON', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    ret.userId = ret.userId.toString();
+    delete ret._id;
+  },
+});
+
+stravaActivitySchema.set('toObject', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    ret.userId = ret.userId.toString();
+    delete ret._id;
+  },
+});
 
 // add index
 stravaActivitySchema.index({ userId: 1 });

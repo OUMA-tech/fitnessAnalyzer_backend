@@ -1,4 +1,4 @@
-import { SubscriptionModel } from "../../interfaces/entity/subscription";
+import { SubscriptionModel } from "../../models/subscriptionModel";
 import { SubscriptionMapper } from "../../mappers/subscription/subscriptionMapper";
 
 export interface SubscriptionServiceDependencies {
@@ -7,8 +7,8 @@ export interface SubscriptionServiceDependencies {
 
 export interface SubscriptionService {
     createSubscription(userId: string): Promise<SubscriptionModel>;
-    getUserSubscription(userId: string): Promise<SubscriptionModel>;
-    updateSubscription(userId: string, subscription: SubscriptionModel): Promise<SubscriptionModel>;
+    getUserSubscription(userId: string): Promise<SubscriptionModel | null>;
+    updateSubscription(userId: string, subscription: SubscriptionModel): Promise<SubscriptionModel | null>;
     deleteSubscription(userId: string): Promise<void>;
 }
 

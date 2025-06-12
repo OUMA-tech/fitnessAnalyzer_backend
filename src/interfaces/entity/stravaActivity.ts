@@ -1,7 +1,7 @@
-import { Document, Types } from 'mongoose';
 
-export interface StravaActivityModel extends Document {
-    userId: Types.ObjectId;
+export interface StravaActivityDto {
+    id: string;
+    userId: string;
     activityId: number;
     name: string;
     source: 'apple_watch' | 'garmin' | 'wahoo' | 'manual' | 'other';

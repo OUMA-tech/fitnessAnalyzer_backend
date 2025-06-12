@@ -1,5 +1,5 @@
 import { Model } from "mongoose";
-import { SubscriptionModel } from "../../interfaces/entity/subscription";
+import { SubscriptionModel } from "../../models/subscriptionModel";
 
 export const createMongoSubscriptionMapper = (SubscriptionModel: Model<SubscriptionModel>) => {
     return {

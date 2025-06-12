@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { UserModel } from '../../interfaces/entity/user';
+import { UserModel } from '../../models/userModel';
 import { UserMapper } from './userMapper';
 
 export const createMongoUserMapper = (UserModel: Model<UserModel>): UserMapper => {

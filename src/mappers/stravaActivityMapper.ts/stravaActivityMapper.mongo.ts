@@ -1,5 +1,6 @@
 import { Model } from "mongoose";
-import { StravaActivityModel } from "../../interfaces/entity/stravaActivity";
+import { StravaActivityModel } from "../../models/stravaActivityModel";
+import { toClientList } from "../../utils/toClient";
 
 export const createMongoStravaActivityMapper = (StravaActivityModel: Model<StravaActivityModel>) => {
     return {
@@ -19,6 +20,12 @@ export const createMongoStravaActivityMapper = (StravaActivityModel: Model<Strav
             const result = await StravaActivityModel.findOneAndDelete({ activityId });
             return result !== null;
         },
-        insertActivities: (activities: StravaActivityModel[]) => StravaActivityModel.insertMany(activities, {ordered: false}),
+        insertActivities: async (activities: StravaActivityModel[]): Promise<void> => {
+            try {
+              await StravaActivityModel.insertMany(activities, { ordered: false });
+            } catch (e) {
+              console.error('Error inserting activities:', e);
+            }
+          },
     }
 }

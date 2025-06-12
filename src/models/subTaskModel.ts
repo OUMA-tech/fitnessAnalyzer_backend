@@ -1,5 +1,11 @@
-import mongoose, { Types } from 'mongoose';
-import { SubTaskModel } from '../interfaces/entity/subTask';
+import mongoose, { Document, Types } from 'mongoose';
+
+export interface SubTaskModel extends Document {
+  _id: Types.ObjectId;
+  trainPlanId: Types.ObjectId;
+  content: string;
+  completed: boolean;
+}
 
 const subTaskSchema = new mongoose.Schema(
   {
@@ -11,6 +17,26 @@ const subTaskSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+subTaskSchema.set('toJSON', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    ret.trainPlanId = ret.trainPlanId.toString();
+    delete ret._id;
+  },
+});
+
+subTaskSchema.set('toObject', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    ret.trainPlanId = ret.trainPlanId.toString();
+    delete ret._id;
+  },
+});
 
 // add index
 subTaskSchema.index({ userId: 1 });

@@ -1,4 +1,4 @@
-import { SubscriptionModel } from "../../interfaces/entity/subscription";
+import { SubscriptionModel } from "../../models/subscriptionModel";
 import { SubscriptionService, SubscriptionServiceDependencies } from "./subscriptionService.interface";
 
 export const createSubscriptionService = (dependencies: SubscriptionServiceDependencies): SubscriptionService => {

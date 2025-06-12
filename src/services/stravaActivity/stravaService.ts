@@ -1,8 +1,9 @@
 import axios from "axios";
 import { StravaServiceDependencies } from "./stravaService.Interface";
-import { UserModel } from "../../interfaces/entity/user";
+import { UserModel } from "../../models/userModel";
 import { decrypt, encrypt } from "../../utils/crypto";
 import { StravaActivityMapper } from "../../mappers/stravaActivityMapper.ts/stravaActivityMapper";
+import { StravaActivityModel } from "../../models/stravaActivityModel"; 
 
 
 interface StravaApiActivity {
@@ -43,6 +44,32 @@ const refreshStravaToken= async (user:UserModel,refreshToken:string) => {
     }
   }
 
+  const verifyAccessToken = async (user:UserModel):Promise<String|null> => {
+    try {
+      console.log("verifying token.........");
+      
+      if (!user) return null;
+
+      const isExpired = Date.now() / 1000 > user.strava.expiresAt;
+      let accessToken;
+
+      if (isExpired) {
+        accessToken = await refreshStravaToken(user, decrypt(user.strava.refreshToken));
+      } else {
+        const encryptedAccessToken = user.strava.accessToken;
+        if (!encryptedAccessToken) {
+          return null;
+        }
+        accessToken = decrypt(encryptedAccessToken);
+      }
+
+      return accessToken || null;
+    } catch (error) {
+      console.error('Error verifying access token:', error);
+      return null;
+    }
+  };
+
 const fetchStravaActivities = async (accessToken:string,userId:string, stravaActivityMapper:StravaActivityMapper)=> {
     console.log("fetching strava activities...........")
     try {
@@ -52,7 +79,6 @@ const fetchStravaActivities = async (accessToken:string,userId:string, stravaAct
         },
   
       });
-      // console.log(response.length);
 
       const records = response.data;
       // console.log(records.length);
@@ -77,7 +103,7 @@ const fetchStravaActivities = async (accessToken:string,userId:string, stravaAct
       console.error('Error fetching activities:', error.response?.data || error.message);
       throw error;
     }
-  },
+}
 
 export const createStravaService = (dependencies: StravaServiceDependencies) => {
     const { stravaActivityMapper, userMapper } = dependencies;
@@ -89,56 +115,71 @@ export const createStravaService = (dependencies: StravaServiceDependencies) => 
         },
         
 
-        verifyAccessToken: async (user:UserModel):Promise<String|null> => {
-            try {
-              console.log("verifying token.........");
-              
-              if (!user) return null;
+
+        handleStravaAuthCallback: async (code:string,userId:string):Promise<void> => {
+    
+            const tokenResponse = await axios.post('https://www.strava.com/oauth/token', {
+            client_id: process.env.STRAVA_CLIENT_ID,
+            client_secret: process.env.STRAVA_CLIENT_SECRET,
+            code,
+            grant_type: 'authorization_code',
+            });
+            
+            // console.log(tokenResponse.data);
+            const { access_token, refresh_token, expires_at, athlete } = tokenResponse.data;
+            
+            await userMapper.updateUser(userId, {
+            isAuthStrava: true,
+            strava: {
+                accessToken: encrypt(access_token),
+                refreshToken: encrypt(refresh_token),
+                expiresAt: expires_at,
+                athleteId: athlete.id,
+            },
+            });
+            await fetchStravaActivities(access_token,userId,stravaActivityMapper);
+            
+        },
+
+        handleStravaWebHook: async (user:UserModel,activityId:string, aspect:string ) => {
+            console.log("handle strava web hook............");
+            console.log(user,activityId);
+            const accessToken = await verifyAccessToken(user);
         
-              const isExpired = Date.now() / 1000 > user.strava.expiresAt;
-              let accessToken;
+            const activityResponse = await axios.get(`https://www.strava.com/api/v3/activities/${activityId}`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            });
         
-              if (isExpired) {
-                accessToken = await refreshStravaToken(user, decrypt(user.strava.refreshToken));
-              } else {
-                const encryptedAccessToken = user.strava.accessToken;
-                if (!encryptedAccessToken) {
-                  return null;
-                }
-                accessToken = decrypt(encryptedAccessToken);
-              }
-        
-              return accessToken || null;
-            } catch (error) {
-              console.error('Error verifying access token:', error);
-              return null;
+            const record = activityResponse.data;
+            const filteredRecord = {
+            userId: user._id,
+            activityId: record.id,
+            name: record.name,
+            type: record.type,
+            distance: record.distance,
+            movingTime: record.moving_time,
+            elapsedTime: record.elapsed_time,
+            startDate: new Date(record.start_date),
+            averageSpeed: record.average_speed,
+            averageHeartrate: record.average_heartrate,
+            totalElevationGain: record.total_elevation_gain,
+            calories: record.kilojoules,
+            } as StravaActivityModel;
+            if(aspect === 'create'){
+            await stravaActivityMapper.create(
+                filteredRecord
+            );
+            }else if(aspect === 'update'){
+            await stravaActivityMapper.updateById(
+                record.id,
+                filteredRecord
+            );
+            }else if(aspect === 'delete'){
+                await stravaActivityMapper.deleteByActivityId(record.id)
             }
-          },
-          handleStravaAuthCallback: async (code:string,userId:string):Promise<void> => {
-            const returnTo = 'https://fitness-analyzer-fronend.vercel.app/#/dashboard';
-        
-              const tokenResponse = await axios.post('https://www.strava.com/oauth/token', {
-                client_id: process.env.STRAVA_CLIENT_ID,
-                client_secret: process.env.STRAVA_CLIENT_SECRET,
-                code,
-                grant_type: 'authorization_code',
-              });
-              
-              // console.log(tokenResponse.data);
-              const { access_token, refresh_token, expires_at, athlete } = tokenResponse.data;
-              
-              await userMapper.updateUser(userId, {
-                isAuthStrava: true,
-                strava: {
-                  accessToken: encrypt(access_token),
-                  refreshToken: encrypt(refresh_token),
-                  expiresAt: expires_at,
-                  athleteId: athlete.id,
-                },
-              });
-              await fetchStravaActivities(access_token,userId,stravaActivityMapper);
-              
-          },
+          }
     }
 
 }

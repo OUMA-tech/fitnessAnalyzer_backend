@@ -12,7 +12,12 @@ import { createEmailQueue } from '../queues/emailQueue';
 import connectDB from '../config/database';
 import StravaActivity from '../models/stravaActivityModel';
 import { createMongoStravaActivityMapper } from '../mappers/stravaActivityMapper.ts/stravaActivityMapper.mongo';
-import { createStravaActivityService } from '../services/stravaActivity/stravaActivityService';
+import { createStravaService } from '../services/stravaActivity/stravaService';
+import { createMongoTrainPlanMapper } from '../mappers/trainPlan/trainPlanMapper.mongo';
+import TrainPlan from '../models/trainPlanModel';
+import { createTrainPlanService } from '../services/trainPlan/trainPlanService';
+import SubTask from '../models/subTaskModel';
+import { createMongoSubTaskMapper } from '../mappers/subTask/subTaskMapper.mongo';
 
 export const createApiContainer = async () => {
 
@@ -31,6 +36,12 @@ export const createApiContainer = async () => {
 
   const stravaActivityMapper = createMongoStravaActivityMapper(StravaActivity);
 
+  const trainPlanMapper = createMongoTrainPlanMapper(TrainPlan);
+
+  const subTaskMapper = createMongoSubTaskMapper(SubTask);
+
+  
+
   // 2. create services
   const subscriptionService = createSubscriptionService({
     subscriptionMapper
@@ -48,8 +59,14 @@ export const createApiContainer = async () => {
     verificationService
   });
 
-  const stravaActivityService = createStravaActivityService({
-    stravaActivityMapper
+  const stravaService = createStravaService({
+    stravaActivityMapper,
+    userMapper
+  });
+
+  const trainPlanService = createTrainPlanService({
+    trainPlanMapper,
+    subTaskMapper
   });
 
 
@@ -62,7 +79,8 @@ export const createApiContainer = async () => {
     // services
     authService,
     subscriptionService,
-    stravaActivityService,
+    stravaService,
+    trainPlanService,
 
     // config
     config

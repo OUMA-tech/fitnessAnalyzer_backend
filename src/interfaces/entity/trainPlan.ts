@@ -1,9 +1,15 @@
-import { Document } from 'mongoose';
-
-export interface TrainPlanModel extends Document {
-    userId: string;
-    title: string;
-    date: Date;
-    status: string;
-  }
+import { SubTaskDto } from "./subTask";
   
+export interface TrainPlanDto {
+    id: string;
+    title: string;
+    status: string;
+    date: Date;
+    subTasks: SubTaskDto[];
+}
+
+export interface TrainPlanInput {
+  title: string;
+  status: string;
+  date: Date;
+}
