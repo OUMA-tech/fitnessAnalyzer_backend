@@ -24,6 +24,33 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Generate .ebextensions/ssl.config with certificate
+        run: |
+          mkdir -p .ebextensions
+          echo "files:" > .ebextensions/ssl.config
+
+          echo "  \"/etc/ssl/certs/cloudflare.crt\":" >> .ebextensions/ssl.config
+          echo "    mode: \"000644\"" >> .ebextensions/ssl.config
+          echo "    owner: root" >> .ebextensions/ssl.config
+          echo "    group: root" >> .ebextensions/ssl.config
+          echo "    content: |" >> .ebextensions/ssl.config
+          echo "${CF_ORIGIN_CERT}" | sed 's/^/      /' >> .ebextensions/ssl.config
+
+          echo "" >> .ebextensions/ssl.config
+          echo "  \"/etc/ssl/private/cloudflare.key\":" >> .ebextensions/ssl.config
+          echo "    mode: \"000600\"" >> .ebextensions/ssl.config
+          echo "    owner: root" >> .ebextensions/ssl.config
+          echo "    group: root" >> .ebextensions/ssl.config
+          echo "    content: |" >> .ebextensions/ssl.config
+          echo "${CF_ORIGIN_KEY}" | sed 's/^/      /' >> .ebextensions/ssl.config
+
+          echo "" >> .ebextensions/ssl.config
+          echo "container_commands:" >> .ebextensions/ssl.config
+          echo "  01_remove_default_conf:" >> .ebextensions/ssl.config
+          echo "    command: \"rm -f /etc/nginx/conf.d/00_elastic_beanstalk_proxy.conf\"" >> .ebextensions/ssl.config
+          echo "  02_restart_nginx:" >> .ebextensions/ssl.config
+          echo "    command: \"service nginx restart\"" >> .ebextensions/ssl.config
+
       - name: Zip compiled app
         run: |
           zip -r app.zip dist package.json package-lock.json
