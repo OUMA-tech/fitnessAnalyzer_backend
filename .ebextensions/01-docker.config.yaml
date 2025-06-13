@@ -1,22 +1,14 @@
 # .ebextensions/01-docker.config
-packages:
-  yum:
-    docker: []
-
-services:
-  sysvinit:
-    docker:
-      enabled: true
-      ensureRunning: true
-      files:
-        - path: /etc/sysconfig/docker
-          content: |
-            OPTIONS='--selinux-enabled=false'
-
-commands:
-  start_docker:
-    command: service docker start
-
 container_commands:
-  run_redis_container:
-    command: docker run -d --name redis -p 6379:6379 redis:latest
+  01_run_redis_if_not_running:
+    command: |
+      if ! docker ps -q -f name=redis > /dev/null; then
+        if docker ps -a -q -f name=redis > /dev/null; then
+          echo "Redis container exists but is not running. Starting it..."
+          docker start redis
+        else
+          echo "Redis container not found. Creating and starting..."
+          docker run -d --name redis -p 6379:6379 redis:latest
+        fi
+      else
+        echo "Redis container is already running."
