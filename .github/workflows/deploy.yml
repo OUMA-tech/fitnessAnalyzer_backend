@@ -58,7 +58,7 @@ jobs:
 
       - name: Zip compiled app
         run: |
-          zip -r app.zip dist package.json package-lock.json .ebextensions
+          zip -r app.zip dist package.json package-lock.json .ebextensions .platform
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v21
