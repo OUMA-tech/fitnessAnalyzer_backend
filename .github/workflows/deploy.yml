@@ -25,7 +25,12 @@ jobs:
         run: npm run build
 
       - name: Generate .ebextensions/ssl.config with certificate
+        env:
+          CF_ORIGIN_CERT: ${{ secrets.CF_ORIGIN_CERT }}
+          CF_ORIGIN_KEY: ${{ secrets.CF_ORIGIN_KEY }}
         run: |
+          echo "CERT length: ${#CF_ORIGIN_CERT}"
+          echo "KEY length: ${#CF_ORIGIN_KEY}"
           mkdir -p .ebextensions
           echo "files:" > .ebextensions/ssl.config
 
