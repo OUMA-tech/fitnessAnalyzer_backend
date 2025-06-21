@@ -1,19 +1,14 @@
 import { Job, Worker } from "bullmq";
-import { sendVerificationEmail } from "../services/email/emailService";
 import { EmailJob } from "./emailQueue";
-import { createRedisClient } from "../config/redis";
-import { createConfig } from "../config";
+import { Redis } from "ioredis";
+import { EmailService } from "../services/email/emailService.interface";
 
 
-const config = createConfig();
-
-const redisClient = createRedisClient(config.redisConfig);
-
-export const createEmailWorker = () => {
+export const createEmailWorker = (emailService: EmailService, redisClient: Redis) => {
     return new Worker<EmailJob>('email', async (job: Job<EmailJob>) => {
       const { to, code, type } = job.data;
   
-      const sent = await sendVerificationEmail(to, code);
+      const sent = await emailService.sendVerificationEmail(to, code);
   
       if (!sent) {
         throw new Error(`Failed to send ${type} email to ${to}`);
@@ -23,4 +18,4 @@ export const createEmailWorker = () => {
     }, {
       connection: redisClient,
     });
-  };
+};

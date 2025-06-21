@@ -1,10 +1,10 @@
 import axios from "axios";
 import { StravaServiceDependencies } from "./stravaService.Interface";
-import { UserModel } from "../../models/userModel";
 import { decrypt, encrypt } from "../../utils/crypto";
-import { StravaActivityMapper } from "../../mappers/stravaActivityMapper.ts/stravaActivityMapper";
-import { StravaActivityModel } from "../../models/stravaActivityModel"; 
-
+import { StravaActivityMapper } from "../../mappers/stravaActivity/stravaActivityMapper";
+import { UserMapper } from "../../mappers/user/userMapper";
+import { UserDto } from "../../interfaces/entity/user";
+import { Types } from "mongoose";
 
 interface StravaApiActivity {
     id: number;
@@ -20,7 +20,7 @@ interface StravaApiActivity {
     kilojoules: number | null;
 }
 
-const refreshStravaToken= async (user:UserModel,refreshToken:string) => {
+const refreshStravaToken= async (user:UserDto,refreshToken:string,userMapper:UserMapper) => {
     console.log("refreshing token.............");
   
     try{
@@ -32,19 +32,24 @@ const refreshStravaToken= async (user:UserModel,refreshToken:string) => {
     });
     console.log(response.data);
     const newToken = response.data;
+
   
-    user.strava.accessToken= encrypt(newToken.access_token),
-    user.strava.refreshToken=encrypt(newToken.refresh_token),
-    user.strava.expiresAt=newToken.expires_at,
-  
-    await user.save();
+    await userMapper.updateUser({
+      id: user.id,
+      strava: {
+        accessToken: encrypt(newToken.access_token),
+        refreshToken: encrypt(newToken.refresh_token),
+        expiresAt: newToken.expires_at,
+        athleteId: user.strava.athleteId,
+      },
+    });
     return newToken.access_token;
     } catch (err) {
       console.error("request failed", err);
     }
   }
 
-  const verifyAccessToken = async (user:UserModel):Promise<String|null> => {
+  const verifyAccessToken = async (user:UserDto, userMapper:UserMapper):Promise<String|null> => {
     try {
       console.log("verifying token.........");
       
@@ -54,7 +59,7 @@ const refreshStravaToken= async (user:UserModel,refreshToken:string) => {
       let accessToken;
 
       if (isExpired) {
-        accessToken = await refreshStravaToken(user, decrypt(user.strava.refreshToken));
+        accessToken = await refreshStravaToken(user, decrypt(user.strava.refreshToken),userMapper);
       } else {
         const encryptedAccessToken = user.strava.accessToken;
         if (!encryptedAccessToken) {
@@ -128,23 +133,30 @@ export const createStravaService = (dependencies: StravaServiceDependencies) => 
             // console.log(tokenResponse.data);
             const { access_token, refresh_token, expires_at, athlete } = tokenResponse.data;
             
-            await userMapper.updateUser(userId, {
-            isAuthStrava: true,
-            strava: {
-                accessToken: encrypt(access_token),
-                refreshToken: encrypt(refresh_token),
-                expiresAt: expires_at,
-                athleteId: athlete.id,
-            },
+            await userMapper.updateUser({
+              id: userId,
+              isAuthStrava: true,
+              strava: {
+                  accessToken: encrypt(access_token),
+                  refreshToken: encrypt(refresh_token),
+                  expiresAt: expires_at,
+                  athleteId: athlete.id,
+              },
             });
             await fetchStravaActivities(access_token,userId,stravaActivityMapper);
             
         },
 
-        handleStravaWebHook: async (user:UserModel,activityId:string, aspect:string ) => {
+        handleStravaWebHook: async (event:any) => {
             console.log("handle strava web hook............");
-            console.log(user,activityId);
-            const accessToken = await verifyAccessToken(user);
+            console.log(event);
+            const { athlete_id: athleteId, aspect_type: aspect, object_id: activityId } = event;
+            const user = await userMapper.findByStravaAthleteId(athleteId);
+            if (!user) {
+                console.warn(`No user found for Strava athleteId: ${athleteId}`);
+                return;
+            }
+            const accessToken = await verifyAccessToken(user,userMapper);
         
             const activityResponse = await axios.get(`https://www.strava.com/api/v3/activities/${activityId}`, {
             headers: {
@@ -154,7 +166,7 @@ export const createStravaService = (dependencies: StravaServiceDependencies) => 
         
             const record = activityResponse.data;
             const filteredRecord = {
-            userId: user._id,
+            userId: new Types.ObjectId(user.id),
             activityId: record.id,
             name: record.name,
             type: record.type,
@@ -166,7 +178,7 @@ export const createStravaService = (dependencies: StravaServiceDependencies) => 
             averageHeartrate: record.average_heartrate,
             totalElevationGain: record.total_elevation_gain,
             calories: record.kilojoules,
-            } as StravaActivityModel;
+            };
             if(aspect === 'create'){
             await stravaActivityMapper.create(
                 filteredRecord

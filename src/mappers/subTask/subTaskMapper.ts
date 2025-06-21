@@ -1,9 +1,7 @@
 import { SubTaskModel } from "../../models/subTaskModel";
+import { SubtaskInput } from "../../interfaces/entity/subTask";
 
 export interface SubTaskMapper {
-    findById: (id: string) => Promise<SubTaskModel | null>;
-    findByTrainPlanId: (trainPlanId: string) => Promise<SubTaskModel[]>;
-    create: (subTask: SubTaskModel) => Promise<SubTaskModel>;
-    update: (id: string, subTask: SubTaskModel) => Promise<SubTaskModel | null>;
-    delete: (id: string) => Promise<boolean>;
+    insertMany: (subTasks: SubtaskInput[]) => Promise<SubTaskModel[]>;
+    updateCompleted: (subtasks: SubtaskInput[], session: any) => Promise<void>;
 }

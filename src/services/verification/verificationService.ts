@@ -1,5 +1,6 @@
-import redisClient from '../../config/redis';
 import { addEmailToQueue } from '../../queues/emailQueue';
+import { VerificationServiceDependencies } from './verificationService.interface';
+import { VerificationService } from './verificationService.interface';
 
 // 验证码类型
 type VerificationType = 'verification' | 'password_reset';
@@ -17,52 +18,52 @@ const generateRedisKey = (email: string, type: string): string => {
   return `verification:${type}:${email}`;
 };
 
-export const sendVerificationCode = async (
-  email: string, 
-  type: 'verification' | 'password_reset' = 'verification'
-): Promise<boolean> => {
-  try {
-    const code = generateVerificationCode();
-    const key = generateRedisKey(email, type);
-    
-    // 存储验证码到Redis，设置15分钟过期
-    await redisClient.setEx(key, VERIFICATION_CODE_EXPIRY, code);
-    
-    // 将邮件发送任务添加到队列
-    const queued = await addEmailToQueue(email, code, type);
-    if (!queued) {
-      // 如果添加到队列失败，删除验证码
-      await redisClient.del(key);
+export const createVerificationService = (dependencies: VerificationServiceDependencies): VerificationService => {
+  const { emailQueue, redisClient } = dependencies;
+
+  return {
+    sendVerificationCode: async (email: string, type: 'verification' | 'password_reset') => {
+      try {
+        const code = generateVerificationCode();
+        const key = generateRedisKey(email, type);
+        
+        // 存储验证码到Redis，设置15分钟过期
+        await redisClient.setex(key, VERIFICATION_CODE_EXPIRY, code);
+        
+        // 将邮件发送任务添加到队列
+        const queued = await addEmailToQueue(emailQueue, email, code, type);
+        if (!queued) {
+          // 如果添加到队列失败，删除验证码
+          await redisClient.del(key);
+          return false;
+        }
+      
+      return true;
+    } catch (error) {
+      console.error('Error sending verification code:', error);
       return false;
     }
-    
-    return true;
-  } catch (error) {
-    console.error('Error sending verification code:', error);
-    return false;
+    },
+    verifyCode: async (
+      email: string, 
+      code: string, 
+      type: VerificationType = 'verification'
+    ): Promise<boolean> => {
+      try {
+        const key = generateRedisKey(email, type);
+
+        const storedCode = await redisClient.get(key);
+        
+        if (!storedCode || storedCode !== code) {
+          return false;
+        }
+
+        await redisClient.del(key);
+        return true;
+      } catch (error) {
+        console.error('Error verifying code:', error);
+        return false;
+      }
+    }
   }
 };
-
-export const verifyCode = async (
-  email: string, 
-  code: string, 
-  type: VerificationType = 'verification'
-): Promise<boolean> => {
-  try {
-    const key = generateRedisKey(email, type);
-    
-    // 获取存储的验证码
-    const storedCode = await redisClient.get(key);
-    
-    if (!storedCode || storedCode !== code) {
-      return false;
-    }
-    
-    // 验证成功后删除验证码
-    await redisClient.del(key);
-    return true;
-  } catch (error) {
-    console.error('Error verifying code:', error);
-    return false;
-  }
-}; 

@@ -11,13 +11,19 @@ import { createVerificationService } from '../services/verification/verification
 import { createEmailQueue } from '../queues/emailQueue';
 import connectDB from '../config/database';
 import StravaActivity from '../models/stravaActivityModel';
-import { createMongoStravaActivityMapper } from '../mappers/stravaActivityMapper.ts/stravaActivityMapper.mongo';
+import { createMongoStravaActivityMapper } from '../mappers/stravaActivity/stravaActivityMapper.mongo';
 import { createStravaService } from '../services/stravaActivity/stravaService';
 import { createMongoTrainPlanMapper } from '../mappers/trainPlan/trainPlanMapper.mongo';
 import TrainPlan from '../models/trainPlanModel';
 import { createTrainPlanService } from '../services/trainPlan/trainPlanService';
 import SubTask from '../models/subTaskModel';
 import { createMongoSubTaskMapper } from '../mappers/subTask/subTaskMapper.mongo';
+import { createNutritionService } from '../services/nutrition/nutritionService';
+import { createStripeClient } from '../config/stripe';
+import { createStripeService } from '../services/stripe/stripeService';
+import { createAuthMiddleware } from '../middlewares/authMiddleware';
+import { createStripeCustomerRedis } from '../mappers/stripeCustomer/stripeCustomerRedisMapper';
+import { createSubscriptionQueue } from '../queues/subscriptionQueue';
 
 export const createApiContainer = async () => {
 
@@ -28,6 +34,11 @@ export const createApiContainer = async () => {
   const redisClient = createRedisClient(config.redisConfig);
 
   const { emailQueue } = createEmailQueue(redisClient);
+
+  const { subscriptionQueue } = createSubscriptionQueue(redisClient);
+
+  const {stripe, SUBSCRIPTION_PLANS, appUrl} = createStripeClient(config.stripeConfig);
+
  
   // 1. create mappers
   const userMapper = createMongoUserMapper(User);
@@ -40,7 +51,7 @@ export const createApiContainer = async () => {
 
   const subTaskMapper = createMongoSubTaskMapper(SubTask);
 
-  
+  const stripeCustomerRedis = createStripeCustomerRedis(redisClient, userMapper);
 
   // 2. create services
   const subscriptionService = createSubscriptionService({
@@ -69,21 +80,43 @@ export const createApiContainer = async () => {
     subTaskMapper
   });
 
+  const nutritionService = createNutritionService({
+    stravaActivityMapper
+  });
+
+  const stripeService = createStripeService({
+    stripe,
+    appUrl,
+    subscriptionMapper,
+    userMapper,
+    stripeCustomerRedis
+  });
+
+  // middleware
+  const authMiddleware = createAuthMiddleware(config.jwtConfig, userMapper);
+
 
   // 3. 返回容器
   return {
+    // redis
+    redisClient,
+    // queues
+    emailQueue,
+    subscriptionQueue,
     // mappers
     userMapper,
     subscriptionMapper,
-
+    stripeCustomerRedis,
     // services
     authService,
     subscriptionService,
     stravaService,
     trainPlanService,
-
+    nutritionService,
+    stripeService,
     // config
-    config
+    config,
+    authMiddleware
   };
 };
 

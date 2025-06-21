@@ -7,7 +7,7 @@ import { SubTaskModel } from "../../models/subTaskModel";
 export interface TrainPlanService {
     createTrainPlansWithSubtasks(userId:string, plans:TrainPlanDto[]):Promise<{insertedTrainPlans:TrainPlanModel[], insertedSubTasks:SubTaskModel[]}>;
     fetchDurationPlanByDateRange(userId:string, start:string, end:string):Promise<TrainPlanDto[]>;
-    updatePlan(userId:string, plan:TrainPlanDto):Promise<void>;
+    updatePlan(plan:TrainPlanDto):Promise<void>;
 }
 
 export interface TrainPlanServiceDependencies {

@@ -45,7 +45,6 @@ export const createEmailQueue = (redisClient: Redis) => {
 };
 
 
-// 单独封装添加任务的函数
 export const addEmailToQueue = async (
   emailQueue: Queue<EmailJob>,
   to: string,

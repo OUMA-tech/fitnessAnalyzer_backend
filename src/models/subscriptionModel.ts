@@ -6,7 +6,8 @@ export interface SubscriptionModel extends Document {
   stripeCustomerId: string;
   stripeSubscriptionId: string;
   planId: string|null;
-  status: 'free'|'active' | 'canceled' | 'past_due' | 'unpaid';
+  // status: 'free'|'active' | 'canceled' | 'past_due' | 'unpaid';
+  status: string;
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
@@ -34,7 +35,7 @@ const subscriptionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'canceled', 'past_due', 'unpaid'],
+    // enum: ['active', 'canceled', 'past_due', 'unpaid'],
     default: 'active'
   },
   currentPeriodStart: {

@@ -5,13 +5,12 @@ import { UserModel } from '../../models/userModel';
 import { RegisterDTO } from '../../interfaces/dto/registerDTO';
 import { LoginDTO } from '../../interfaces/dto/loginDTO';
 import { signPayload } from '../../utils/jwt';
-// import { createSubscription } from './subscription.service';
-// import { DEFAULT_SUBSCRIPTION } from '../constants';
+import { UserDto } from '../../interfaces/entity/user';
 
 export const createAuthService =(dependencies: AuthServiceDependencies): AuthService => {
     const { userMapper, jwtConfig, subscriptionService, verificationService } = dependencies;
     return {
-      register: async (userData: RegisterDTO): Promise<UserModel> => {
+      register: async (userData: RegisterDTO): Promise<UserDto> => {
         const existingUser = await userMapper.findByEmail(userData.email);
         if (existingUser) {
         throw new Error('User already exists');
@@ -27,30 +26,35 @@ export const createAuthService =(dependencies: AuthServiceDependencies): AuthSer
         ...userData,
         password: hashedPassword,
       });
-      //  create subscription
-      await subscriptionService.createSubscription(user.id);
 
       return user;
     },
 
     login: async (userData: LoginDTO): Promise<LoginResponse> => {
+
       const user = await userMapper.findByEmail(userData.email);
       if (!user) {
         throw new Error('User not found');
       }
-
+      console.log(user);
       const isPasswordValid = await bcrypt.compare(userData.password, user.password);
       if (!isPasswordValid) {
         throw new Error('Invalid password');
       }
-
-      const token = signPayload(user, jwtConfig.secret, jwtConfig.expiresIn);
+      console.log(typeof(jwtConfig.expiresIn));
+      const payload = {
+        id:user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        isAuthStrava: user.isAuthStrava,
+      }
+      const token = signPayload(payload, jwtConfig.secret, jwtConfig.expiresIn);
 
       const subscription = await subscriptionService.getUserSubscription(user.id);
-      if (!subscription) {
-        throw new Error('Subscription not found');
-      }
-      return { user, token, subscriptionId: subscription.id };
+      // console.log("1111111111111");
+      return { user, token, subscription };
     },
 
     sendVerificationCode: async (email: string): Promise<boolean> => {

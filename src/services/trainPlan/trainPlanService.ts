@@ -40,7 +40,7 @@ export const createTrainPlanService = (dependencies: TrainPlanServiceDependencie
             const plansWithSubtasks = await trainPlanMapper.findByDateRange(userId, start, end);
             return plansWithSubtasks;
         },
-        updatePlan: async (userId: string, plan: TrainPlanDto) => {
+        updatePlan: async (plan: TrainPlanDto) => {
             const subtasks = plan.subTasks;
             const trainPlanId = plan.id as string;
             if (subtasks && subtasks.length > 0) {

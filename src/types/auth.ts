@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { UserModel } from '../models/userModel';
+import { UserDto } from '../interfaces/entity/user';
 
 export interface AuthRequest extends Request {
-  user?: UserModel;
+  user?: UserDto;
 }

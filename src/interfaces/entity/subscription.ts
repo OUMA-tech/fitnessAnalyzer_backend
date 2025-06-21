@@ -5,7 +5,7 @@ export interface SubscriptionDto {
     stripeCustomerId: string;
     stripeSubscriptionId: string;
     planId: string|null;
-    status: 'free'|'active' | 'canceled' | 'past_due' | 'unpaid';
+    status: string;
     currentPeriodStart: Date;
     currentPeriodEnd: Date;
     cancelAtPeriodEnd: boolean;

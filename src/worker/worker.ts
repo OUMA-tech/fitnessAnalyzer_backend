@@ -1,4 +1,4 @@
 import { createEmailWorker } from "../queues/emailWorker";
+import { createEmailService } from "../services/email/emailService";
 
-const emailWorker = createEmailWorker();
-console.log("Creating email worker");
+

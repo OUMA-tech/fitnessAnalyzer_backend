@@ -1,9 +1,12 @@
+import { SubscriptionDto } from "../../interfaces/entity/subscription";
 import { SubscriptionModel } from "../../models/subscriptionModel";
 
 export interface SubscriptionMapper {
-    findById: (id: string) => Promise<SubscriptionModel | null>;
-    findByUserId: (userId: string) => Promise<SubscriptionModel | null>;
-    create: (userId: string) => Promise<SubscriptionModel>;
+    findById: (id: string) => Promise<SubscriptionDto | null>;
+    findByUserId: (userId: string) => Promise<SubscriptionDto | null>;
+    create: (subscription: SubscriptionDto) => Promise<SubscriptionModel>;
     update: (id: string, subscription: SubscriptionModel) => Promise<SubscriptionModel | null>;
-    delete: (id: string) => Promise<boolean>;
+    deleteByStripeSubscriptionId: (subscriptionId: string) => Promise<boolean>;
+    updateByUserId: (subscription: Partial<SubscriptionDto>) => Promise<SubscriptionModel | null>;
+    cancelBySubscriptionId: (subscriptionId: string) => Promise<boolean>;
 }

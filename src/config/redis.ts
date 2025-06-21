@@ -9,6 +9,7 @@ export const createRedisClient = (config: {
     host: config.host,
     port: config.port,
     password: config.password,
+    maxRetriesPerRequest: null,
   });
 
   client.on('error', (err) => {

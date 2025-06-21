@@ -28,6 +28,7 @@ export const createMongoTrainPlanMapper = (TrainPlanModel: Model<TrainPlanModel>
                     }
                 }
             ]);
+            console.log(trainPlans);
             return trainPlans.map(plan => toClientWithSubtasks(plan));
         },
         updateCompleted: async (trainPlanId: string, updateData: any, session: any) => {

@@ -23,18 +23,22 @@ export const createTrainPlanController = (trainPlanService: TrainPlanService) =>
     fetchDurationPlan: async (req:Request, res:Response) => {
       const userId = req.user?.id;
       const  { start, end } = req.query;
-      const plansWithSubtasks = await trainPlanService.fetchDurationPlanByDateRange(userId, start as string, end as string);
-      res.status(200).json({
-        success:true,
-        message:'Fetch duration plan success',
-        data: plansWithSubtasks,
-      })
+      try{
+        const plansWithSubtasks = await trainPlanService.fetchDurationPlanByDateRange(userId, start as string, end as string);
+        res.status(200).json({
+          success:true,
+          message:'Fetch duration plan success',
+          data: plansWithSubtasks,
+        })
+      } catch (err){
+        console.log("fetch plan error:", err);
+      }
     },
     updatePlan: async (req:Request, res:Response) => {
       try{
         const userId = req.user?.id;
         const plan = req.body.plan;
-        await trainPlanService.updatePlan(userId, plan);
+        await trainPlanService.updatePlan(plan);
         res.status(200).json({
           success:true,
           message:'update plan success',

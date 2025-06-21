@@ -1,30 +1,37 @@
 import { Model } from 'mongoose';
 import { UserModel } from '../../models/userModel';
 import { UserMapper } from './userMapper';
-
+import { toClient } from '../../utils/toClient';
 export const createMongoUserMapper = (UserModel: Model<UserModel>): UserMapper => {
   return {
     async findById(id) {
-      return await UserModel.findById(id);
+      const user = await UserModel.findById(id).lean();
+      return user ? toClient(user) : null;
     },
     async findByEmail(email) {
-      return await UserModel.findOne({ email });
+      const user = await UserModel.findOne({ email }).lean();
+      return user ? toClient(user) : null;
     },
     async findByStravaAthleteId(athleteId) {
-      return await UserModel.findOne({ 'strava.athleteId': athleteId });
+      const user = await UserModel.findOne({ 'strava.athleteId': athleteId }).lean();
+      return user ? toClient(user) : null;
     },
     async create(user) {
-      return await UserModel.create(user);
+      const newUser = await UserModel.create(user);
+      return toClient(newUser);
     },
-    async update(user) {
-      return await UserModel.findByIdAndUpdate(user._id, user, { new: true });
-    },
+
     async delete(id) {
       const result = await UserModel.findByIdAndDelete(id);
       return result !== null;
     },
-    async updateUser(userId: string, user: Partial<UserModel>) {
-      return await UserModel.findByIdAndUpdate(userId, user, { new: true });
-    }
+    async updateUser(user) {
+      const updatedUser = await UserModel.findByIdAndUpdate(user.id, user, { new: true });
+      return updatedUser ? toClient(updatedUser) : null;
+    },
+    async getUserByStripeCustomerId(customerId) {
+      const user = await UserModel.findOne({ 'stripeCustomerId': customerId });
+      return user ? toClient(user) : null;
+    },
   };
 };

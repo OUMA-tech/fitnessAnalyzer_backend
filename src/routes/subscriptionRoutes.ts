@@ -1,29 +1,23 @@
 import express from 'express';
-import {
-  getSubscriptionPlans,
-  createSubscription,
-  cancelSubscription,
-  updateSubscription,
-  getSubscriptionStatus
-} from '../controllers/subscriptionController';
-import { handleWebhook } from '../controllers/webhookController';
+import { createSubscriptionController } from '../controllers/subscriptionController';
 import { extractToken } from '../middlewares/extractToken';
-import { protect } from '../middlewares/authMiddleware';
-import bodyParser from 'body-parser';
+import { ApiContainer } from '../container/api.container';
 
-const router = express.Router();
 
-// 公开路由
-router.get('/plans', getSubscriptionPlans);
+export const createSubscriptionRoutes = (apiContainer: ApiContainer) => {
+  const router = express.Router();
+  const subscriptionController = createSubscriptionController(apiContainer.subscriptionService, apiContainer.stripeService);
+  const authMiddleware = apiContainer.authMiddleware;
 
-// Stripe Webhook
-router.post('/webhook',  bodyParser.raw({ type: 'application/json' }), handleWebhook);
 
-// 需要认证的路由
-router.use(extractToken,protect);
-// router.post('/create', createSubscription);
-// router.post('/:subscriptionId/cancel', cancelSubscription);
-// router.post('/:subscriptionId/update', updateSubscription);
-router.get('/status', getSubscriptionStatus);
 
-export default router; 
+
+  // 需要认证的路由
+  router.use(extractToken,authMiddleware.protect);
+  router.post('/create', subscriptionController.createSubscription);
+  router.post('/:subscriptionId/cancel', subscriptionController.cancelSubscription);
+  router.post('/:subscriptionId/update', subscriptionController.updateSubscription);
+  router.get('/status', subscriptionController.getSubscription);
+
+  return router;
+}

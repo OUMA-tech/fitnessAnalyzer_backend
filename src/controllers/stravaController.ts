@@ -1,9 +1,7 @@
 // src/controllers/book.controller.ts
 import { Request, Response } from 'express';
 import { StravaService } from '../services/stravaActivity/stravaService.Interface';
-import { verifyAccessToken } from '../services/stravaService';
 import { UserMapper } from '../mappers/user/userMapper';
-import axios from 'axios';
 
 
 
@@ -49,8 +47,8 @@ export const createStravaController = (stravaService: StravaService, userMapper:
   return {
     getStravaActivities: async (req: Request, res: Response):Promise<void> => {
       try {
-        const _id = (req as any).user?._id;
-        if (!_id) {
+        const id = (req as any).user?.id;
+        if (!id) {
           res.status(401).json({ message: 'unauthorized, please login' });
           return ;
         }
@@ -60,7 +58,7 @@ export const createStravaController = (stravaService: StravaService, userMapper:
         const category = req.query.category?.toString() || '';
     
         const filter: any = {
-          userId: _id
+          userId: id
         };
     
         if (category) {
@@ -138,7 +136,7 @@ export const createStravaController = (stravaService: StravaService, userMapper:
           return ;
         }
 
-        await stravaService.handleStravaWebHook(user,activityId);
+        await stravaService.handleStravaWebHook(event);
     
         res.status(200).send('OK');
       } catch (err) {

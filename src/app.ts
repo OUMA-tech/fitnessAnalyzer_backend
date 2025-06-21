@@ -12,15 +12,13 @@ import xss from 'xss';
 import helmet from 'helmet';
 
 import { createApiContainer, ApiContainer } from './container/api.container';
-import { handleWebhook } from './controllers/webhookController';
 import { createAuthRoutes } from './routes/authRoutes';
-import { createRecordRoutes } from './routes/recordRoutes';
 import { createStravaRoutes } from './routes/stravaRoutes';
 import { createTrainPlanRoutes } from './routes/trainPlanRoutes';
 import { createProfileRoutes } from './routes/profileRoutes';
 import { createNutritionRoutes } from './routes/nutritionRoutes';
 import { createSubscriptionRoutes } from './routes/subscriptionRoutes';
-
+import { createStripeWebhookRoutes } from './routes/stripeWebhookRoutes';
 export const createApp = async (): Promise<Application> => {
   const container: ApiContainer = await createApiContainer();
 
@@ -28,6 +26,8 @@ export const createApp = async (): Promise<Application> => {
 
   // Load Swagger document
   const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+
+  app.use('/webhook/stripe', express.raw({ type: 'application/json' }), createStripeWebhookRoutes(container.subscriptionQueue, container.stripeCustomerRedis));
 
   // ----- Security Middleware -----
   // Uncomment and configure as needed
@@ -65,12 +65,7 @@ export const createApp = async (): Promise<Application> => {
   // Logging
   app.use(morgan('dev'));
 
-  // Raw body for Stripe webhook
-  app.post(
-    '/api/stripe/webhook',
-    bodyParser.raw({ type: 'application/json' }),
-    handleWebhook
-  );
+
 
   // JSON Body parser
   app.use(bodyParser.json());
@@ -79,12 +74,12 @@ export const createApp = async (): Promise<Application> => {
 
   // ----- Routes -----
   app.use('/api/auth', createAuthRoutes(container));
-  app.use('/api/records', createRecordRoutes(container));
+  app.use('/api/records', createStravaRoutes(container));
   app.use('/api/strava', createStravaRoutes(container));
   app.use('/api/trainPlans', createTrainPlanRoutes(container));
   app.use('/api/profile', createProfileRoutes(container));
   app.use('/api/nutrition', createNutritionRoutes(container));
-  app.use('/api/stripe', createSubscriptionRoutes(container));
+  app.use('/api/subscription', createSubscriptionRoutes(container));
 
   // Swagger UI
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

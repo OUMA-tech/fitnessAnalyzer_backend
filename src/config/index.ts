@@ -22,6 +22,13 @@ export interface SesConfig {
     source: string;
 }
 
+export interface StripeConfig {
+    secretKey: string;
+    basicPriceId: string;
+    proPriceId: string;
+    appUrl: string;
+}
+
 export const createConfig = () => {
   return {
     // database: createDatabaseConfig(),
@@ -35,6 +42,7 @@ export const createConfig = () => {
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD || undefined,
+      maxRetriesPerRequest: null,
     } as RedisConfig,
     sesConfig: {
       region: process.env.AWS_REGION || 'ap-southeast-2',
@@ -42,5 +50,11 @@ export const createConfig = () => {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
       source: `noreply@${process.env.DOMAIN_NAME}` || ''
     } as SesConfig,
+    stripeConfig: {
+      secretKey: process.env.STRIPE_SECRET_KEY || '',
+      basicPriceId: process.env.STRIPE_BASIC_PRICE_ID || '',
+      proPriceId: process.env.STRIPE_PRO_PRICE_ID || '',
+      appUrl: process.env.APP_URL || '',
+    } as StripeConfig,
   };
 };
