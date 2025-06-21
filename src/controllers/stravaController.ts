@@ -1,135 +1,149 @@
+// src/controllers/book.controller.ts
 import { Request, Response } from 'express';
-import axios from 'axios';
-import User from '../models/userModel';
-import { encrypt } from '../utils/crypto';
-import Record, { RecordModel } from '../models/recordModel';
-import { fetchStravaActivities, verifyAccessToken } from '../services/stravaService';
+import { StravaService } from '../services/stravaActivity/stravaService.Interface';
+import { UserMapper } from '../mappers/user/userMapper';
 
 
-export const stravaCallback = async (req: Request, res: Response):Promise<void> => {
-  const code = req.query.code;
-  const returnTo = 'https://fitness-analyzer-fronend.vercel.app/#/dashboard';
 
-  if (!code) {
-    res.status(400).send('Missing authorization code');
-    return ;
-  }
+// // GET /api/books?search=关键词&category=分类&page=1&pageSize=10
+// export const getRecords = async (req: Request, res: Response):Promise<void> => {
+//   try {
+//     const _id = (req as any).user?._id;
+//     if (!_id) {
+//       res.status(401).json({ message: 'unauthorized, please login' });
+//       return ;
+//     }
 
-  try {
-    const tokenResponse = await axios.post('https://www.strava.com/oauth/token', {
-      client_id: process.env.STRAVA_CLIENT_ID,
-      client_secret: process.env.STRAVA_CLIENT_SECRET,
-      code,
-      grant_type: 'authorization_code',
-    });
+//     const page = Number(req.query.page) || 1;
+//     const pageSize = Number(req.query.pageSize) || 10;
+//     const category = req.query.category?.toString() || '';
+
+//     const filter: any = {
+//       userId: _id
+//     };
+
+//     if (category) {
+//       filter.category = category;
+//     }
+//     console.log(filter);
+//     const total = await Record.countDocuments(filter);
+//     const records = await Record.find(filter)
+//       .sort({ startDate: -1 })
+//       .skip((page - 1) * pageSize)
+//       .limit(pageSize);
+//     console.log('records', records);
+//     res.status(200).json({
+//       records,
+//       page,
+//       totalPages: Math.ceil(total / pageSize),
+//       total,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: 'failed getting record', error });
+//   }
+// };
+
+export const createStravaController = (stravaService: StravaService, userMapper: UserMapper) => {
+  return {
+    getStravaActivities: async (req: Request, res: Response):Promise<void> => {
+      try {
+        const id = (req as any).user?.id;
+        if (!id) {
+          res.status(401).json({ message: 'unauthorized, please login' });
+          return ;
+        }
     
-    // console.log(tokenResponse.data);
-    const { access_token, refresh_token, expires_at, athlete } = tokenResponse.data;
-    const userId = req.user?.id; 
-    if (!userId) {
-      res.status(401).send('Unauthorized');
-      return ;
+        const page = Number(req.query.page) || 1;
+        const pageSize = Number(req.query.pageSize) || 10;
+        const category = req.query.category?.toString() || '';
+    
+        const filter: any = {
+          userId: id
+        };
+    
+        if (category) {
+          filter.category = category;
+        }
+        console.log(filter);
+     
+        const {activities, total} = await stravaService.getStravaActivities(page, pageSize, filter);
+        console.log('stravaActivities', activities);
+        res.status(200).json({
+          activities,
+          page,
+          totalPages: Math.ceil(total / pageSize),
+          total,
+        });
+      } catch (error) {
+        res.status(500).json({ message: 'failed getting record', error });
+      }
+    },
+    stravaCallback: async (req: Request, res: Response):Promise<void> => {
+      const code = req.query.code;
+      const returnTo = 'https://fitness-analyzer-fronend.vercel.app/#/dashboard';
+    
+      if (!code) {
+        res.status(400).send('Missing authorization code');
+        return;
+      }
+    
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).send('Unauthorized');
+        return;
+      }
+    
+      try {
+        await stravaService.handleStravaAuthCallback(code as string, userId);
+        res.redirect(returnTo);
+      } catch (err) {
+        res.redirect(`${returnTo}?strava=fail`);
+      }
+    },
+    subscriptionValidation: async (req: Request, res: Response):Promise<void> => {
+      console.log("subsription validation............");
+      console.log(req.query);
+      const mode = req.query['hub.mode'];
+      const token = req.query['hub.verify_token'];
+      const challenge = req.query['hub.challenge'];
+    
+      if (mode === 'subscribe' && token === process.env.STRAVA_VERIFY_TOKEN) {
+        res.status(200).json({ 'hub.challenge': challenge });
+      } else {
+        res.status(403).send('Verification failed');
+      }
+      return;
+    
+    },
+    stravaWebHook: async (req: Request, res: Response):Promise<void> => {
+      console.log("message from strava web hook..........");
+      const event = req.body;
+      console.log(event);
+      if (event.object_type !== 'activity') {
+        res.status(200).send('Ignored non-activity event');
+        return ;
+      }
+    
+      try {
+        console.log('✅ Received Strava Event:', event);
+        // TODO use eventId to fetch this event and save to database
+        const { owner_id: athleteId, aspect_type: aspect, object_id: activityId } = event;
+    
+        const user = await userMapper.findByStravaAthleteId(athleteId);
+        if (!user) {
+          console.warn(`No user found for Strava athleteId: ${athleteId}`);
+          res.status(200).send('User not found, ignored.');
+          return ;
+        }
+
+        await stravaService.handleStravaWebHook(event);
+    
+        res.status(200).send('OK');
+      } catch (err) {
+        console.error('❌ Failed to handle Strava webhook event:', err);
+        res.status(500).send('Failed to process event');
+      }
+      
     }
-    await User.findByIdAndUpdate(userId, {
-      isAuthStrava: true,
-      strava: {
-        accessToken: encrypt(access_token),
-        refreshToken: encrypt(refresh_token),
-        expiresAt: expires_at,
-        athleteId: athlete.id,
-      },
-    });
-    fetchStravaActivities(access_token,userId);
-    res.redirect(`${returnTo}`);
-  } catch (error) {
-    // console.error('Strava OAuth callback error:', error);
-    res.redirect(`${returnTo}?strava=fail`);
   }
 };
-
-export const subscriptionValidation = async (req: Request, res: Response):Promise<void> => {
-  console.log("subsription validation............");
-  console.log(req.query);
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
-
-  if (mode === 'subscribe' && token === process.env.STRAVA_VERIFY_TOKEN) {
-    res.status(200).json({ 'hub.challenge': challenge });
-  } else {
-    res.status(403).send('Verification failed');
-  }
-  return;
-
-}
-
-export const stravaWebHook = async (req: Request, res: Response):Promise<void> => {
-  console.log("message from strava web hook..........");
-  const event = req.body;
-  console.log(event);
-  if (event.object_type !== 'activity') {
-    res.status(200).send('Ignored non-activity event');
-    return ;
-  }
-
-  try {
-    console.log('✅ Received Strava Event:', event);
-    // TODO use eventId to fetch this event and save to database
-    const athleteId = event.owner_id;
-    const aspect = event.aspect_type;
-    const activityId = event.object_id;
-
-    const user = await User.findOne({ 'strava.athleteId': athleteId });
-    if (!user) {
-      console.warn(`No user found for Strava athleteId: ${athleteId}`);
-      res.status(200).send('User not found, ignored.');
-      return ;
-    }
-
-    const accessToken = await verifyAccessToken(user);
-
-    const activityResponse = await axios.get(`https://www.strava.com/api/v3/activities/${activityId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const record = activityResponse.data;
-    const filteredRecord = {
-      userId: user._id,
-      activityId: record.id,
-      name: record.name,
-      type: record.type,
-      distance: record.distance,
-      movingTime: record.moving_time,
-      elapsedTime: record.elapsed_time,
-      startDate: new Date(record.start_date),
-      averageSpeed: record.average_speed,
-      averageHeartrate: record.average_heartrate,
-      totalElevationGain: record.total_elevation_gain,
-      calories: record.kilojoules,
-    };
-    if(aspect === 'create'){
-      await Record.create(
-        filteredRecord
-      );
-    }else if(aspect === 'update'){
-      await Record.findOneAndUpdate(
-        { activityId: record.id },
-        filteredRecord,
-        { upsert: true, new: true }
-      );
-    }else if(aspect === 'delete'){
-      Record.findOneAndDelete(
-        { activityId: record.id }
-      )
-    }
-
-    res.status(200).send('OK');
-  } catch (err) {
-    console.error('❌ Failed to handle Strava webhook event:', err);
-    res.status(500).send('Failed to process event');
-  }
-  
-}
-

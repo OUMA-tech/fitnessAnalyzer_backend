@@ -1,16 +1,16 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 
-export interface TrainPlanModel {
-  userId: string;
+export interface TrainPlanModel extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
   title: string;
   date: Date;
   status: string;
 }
 
-
 const trainPlanSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Types.ObjectId, required: true },
     title: { type: String, required: true },
     date: { type: Date, default: Date.now },
     status: { type: String,   enum: ['draft', 'planned', 'completed'],
@@ -20,6 +20,26 @@ const trainPlanSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+trainPlanSchema.set('toJSON', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    ret.userId = ret.userId.toString();
+    delete ret._id;
+  },
+});
+
+trainPlanSchema.set('toObject', {
+  virtuals: true,        // 启用虚拟属性（例如 id）
+  versionKey: false,     // 删除 __v
+  transform: (_, ret) => {
+    ret.id = ret._id.toString();
+    ret.userId = ret.userId.toString();
+    delete ret._id;
+  },
+});
 
 // add index
 trainPlanSchema.index({ userId: 1 });

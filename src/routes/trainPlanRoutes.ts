@@ -1,12 +1,16 @@
 import express from 'express';
-import { protect } from '../middlewares/authMiddleware';
 import { extractToken } from '../middlewares/extractToken';
-import { fetchDurationPlan, insertTrainPlan, updatePlan } from '../controllers/trainPlanController';
+import { ApiContainer } from '../container/api.container';
+import { createTrainPlanController } from '../controllers/trainPlanController';
 
-const router = express.Router();
 
-router.post('/', extractToken, protect, insertTrainPlan);
-router.get('/today', extractToken, protect, fetchDurationPlan);
-router.put('/today', extractToken, protect, updatePlan);
+export const createTrainPlanRoutes = (container: ApiContainer) => {
+    const router = express.Router();
+    const trainPlanController = createTrainPlanController(container.trainPlanService);
+    const authMiddleware = container.authMiddleware;
+    router.post('/', extractToken, authMiddleware.protect, trainPlanController.insertTrainPlan);
+    router.get('/today', extractToken, authMiddleware.protect, trainPlanController.fetchDurationPlan);
+    router.put('/today', extractToken, authMiddleware.protect, trainPlanController.updatePlan);
 
-export default router;
+    return router;
+}

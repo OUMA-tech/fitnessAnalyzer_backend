@@ -1,10 +1,16 @@
 import express from 'express';
-import { protect } from '../middlewares/authMiddleware';
 import { extractToken } from '../middlewares/extractToken';
-import { returnUploadUrl, saveAvatar } from '../controllers/profileController';
+import { createProfileController } from '../controllers/profileController';
+import { ApiContainer } from '../container/api.container';
 
-const router = express.Router();
+export const createProfileRoutes = (apiContainer: ApiContainer) => {
+    const router = express.Router();
 
-router.post('/', extractToken, protect, returnUploadUrl);
-router.put('/success', extractToken, protect, saveAvatar);
-export default router;
+    const profileController = createProfileController(apiContainer.userMapper);
+    const authMiddleware = apiContainer.authMiddleware;
+    router.post('/', extractToken, authMiddleware.protect, profileController.returnUploadUrl);
+    router.put('/success', extractToken, authMiddleware.protect, profileController.saveAvatar);
+
+    return router;
+}
+

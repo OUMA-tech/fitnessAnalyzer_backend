@@ -1,11 +1,15 @@
 import express from 'express';
-import { getWeeklyNutrition, getActivityNutrition } from '../controllers/nutritionController';
-import { protect } from '../middlewares/authMiddleware';
+import { createNutritionController } from '../controllers/nutritionController';
 import { extractToken } from '../middlewares/extractToken';
+import { ApiContainer } from '../container/api.container';
 
-const router = express.Router();
+export const createNutritionRoutes = (apiContainer: ApiContainer) => {
 
-router.get('/weekly', extractToken, protect, getWeeklyNutrition);
-router.get('/activity/:activityId', extractToken, protect, getActivityNutrition);
+    const router = express.Router();
+    const nutritionController = createNutritionController(apiContainer.nutritionService);
+    const authMiddleware = apiContainer.authMiddleware;
+    router.get('/weekly', extractToken, authMiddleware.protect, nutritionController.getWeeklyNutrition);
+    router.get('/activity/:activityId', extractToken, authMiddleware.protect, nutritionController.getActivityNutrition);
 
-export default router; 
+    return router;
+}

@@ -1,4 +1,4 @@
-// src/index.ts
+// src/app.ts
 import express, { Application } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -11,50 +11,33 @@ import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss';
 import helmet from 'helmet';
 
-import authRoutes from './routes/authRoutes';
-import recordRoutes from './routes/recordRoutes';
-import stravaRoutes from './routes/stravaRoutes'
-import trainPlanRoutes from './routes/trainPlanRoutes'
-import profileRoutes from './routes/profileRoutes'
-import nutritionRoutes from './routes/nutritionRoutes'
+import { createApiContainer, ApiContainer } from './container/api.container';
+import { createAuthRoutes } from './routes/authRoutes';
+import { createStravaRoutes } from './routes/stravaRoutes';
+import { createTrainPlanRoutes } from './routes/trainPlanRoutes';
+import { createProfileRoutes } from './routes/profileRoutes';
+import { createNutritionRoutes } from './routes/nutritionRoutes';
+import { createSubscriptionRoutes } from './routes/subscriptionRoutes';
+import { createStripeWebhookRoutes } from './routes/stripeWebhookRoutes';
+export const createApp = async (): Promise<Application> => {
+  const container: ApiContainer = await createApiContainer();
 
-const app: Application = express();
+  const app: Application = express();
 
-// Load Swagger document
-const swaggerDocument = YAML.load(path.join(__dirname, './swagger.yaml'));
+  // Load Swagger document
+  const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
 
-// Security Middleware
-// // 1. Helmet for basic security headers
-// app.use(helmet());
+  app.use('/webhook/stripe', express.raw({ type: 'application/json' }), createStripeWebhookRoutes(container.subscriptionQueue, container.stripeCustomerRedis));
 
-// // 2. Data Sanitization against NoSQL query injection
-// app.use(mongoSanitize());
-
-// // 3. Data Sanitization against XSS
-// app.use((req, res, next) => {
-//   if (req.body) {
-//     // Recursively sanitize all string values in the request body
-//     const sanitizeObject = (obj: any) => {
-//       for (let key in obj) {
-//         if (typeof obj[key] === 'string') {
-//           obj[key] = xss(obj[key]);
-//         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-//           sanitizeObject(obj[key]);
-//         }
-//       }
-//     };
-//     sanitizeObject(req.body);
-//   }
-//   next();
-// });
-
-// // 4. Rate limiting - limits each IP to 100 requests per 15 minutes
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   message: 'Too many requests from this IP, please try again later.'
-// });
-// app.use(limiter);
+  // ----- Security Middleware -----
+  // Uncomment and configure as needed
+  // app.use(helmet());
+  // app.use(mongoSanitize());
+  // app.use(rateLimit({
+  //   windowMs: 15 * 60 * 1000,
+  //   max: 100,
+  //   message: 'Too many requests from this IP, please try again later.'
+  // }));
 
 // // 5. Body size limits
 // app.use(express.json({ limit: '10kb' })); // Limit body size to 10kb
@@ -77,18 +60,34 @@ app.use((req, res, next) => {
     console.log('------------------------');
     next();
   });
-app.use(express.json());
-// app.options('*', cors());
-app.use('/api/auth', authRoutes);
-app.use('/api/records', recordRoutes);
-app.use('/api/strava', stravaRoutes);
-app.use('/api/trainPlans', trainPlanRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/nutrition', nutritionRoutes);
-// app.use('/api/books', bookRoutes);
-// app.use('/api/cart', cartRoutes);
 
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  // CORS
+  app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  }));
 
-export default app;
+  // Logging
+  app.use(morgan('dev'));
+
+
+
+  // JSON Body parser
+  app.use(bodyParser.json());
+  // or simply:
+  // app.use(express.json());
+
+  // ----- Routes -----
+  app.use('/api/auth', createAuthRoutes(container));
+  app.use('/api/records', createStravaRoutes(container));
+  app.use('/api/strava', createStravaRoutes(container));
+  app.use('/api/trainPlans', createTrainPlanRoutes(container));
+  app.use('/api/profile', createProfileRoutes(container));
+  app.use('/api/nutrition', createNutritionRoutes(container));
+  app.use('/api/subscription', createSubscriptionRoutes(container));
+
+  // Swagger UI
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+  return app;
+};

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel';
-import { sendVerificationCode, verifyCode } from '../services/verificationService';
+import { sendVerificationCode, verifyCode } from '../services/verification/verificationService';
 
 export const sendEmailVerification = async (req: Request, res: Response): Promise<void> => {
   try {
