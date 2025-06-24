@@ -9,4 +9,5 @@ export interface SubscriptionMapper {
     deleteByStripeSubscriptionId: (subscriptionId: string) => Promise<boolean>;
     updateByUserId: (subscription: Partial<SubscriptionDto>) => Promise<SubscriptionModel | null>;
     cancelBySubscriptionId: (subscriptionId: string) => Promise<boolean>;
+    updateSubscription: (subscriptionId: string, subscription: Partial<SubscriptionDto>) => Promise<SubscriptionModel | null>;
 }

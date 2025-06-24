@@ -3,7 +3,6 @@ import { Redis } from 'ioredis';
 
 export interface SubscriptionJob {
   subscriptionId: string;
-  userId: string;
 }
 
 export const createSubscriptionQueue = (redisClient: Redis) => {
@@ -44,10 +43,9 @@ export const createSubscriptionQueue = (redisClient: Redis) => {
 export const enqueueSubscriptionSync = async (
     subscriptionQueue: Queue<SubscriptionJob>,
     subscriptionId: string,
-    userId: string
 ) => {
     try {
-        await subscriptionQueue.add('sync-subscription', { subscriptionId, userId });
+        await subscriptionQueue.add('sync-subscription', { subscriptionId });
         return true;
     } catch (error) {
         console.error('❌ Failed to add subscription to queue:', error);

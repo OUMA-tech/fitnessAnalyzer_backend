@@ -19,6 +19,7 @@ import { createProfileRoutes } from './routes/profileRoutes';
 import { createNutritionRoutes } from './routes/nutritionRoutes';
 import { createSubscriptionRoutes } from './routes/subscriptionRoutes';
 import { createStripeWebhookRoutes } from './routes/stripeWebhookRoutes';
+
 export const createApp = async (): Promise<Application> => {
   const container: ApiContainer = await createApiContainer();
 
@@ -45,21 +46,21 @@ export const createApp = async (): Promise<Application> => {
 
 
 
-app.use(cors({
-  origin: 'https://fit-tracker.fyi',
-  credentials: true
-}));
-app.use(bodyParser.json());
-app.use(morgan('dev'));
-app.use((req, res, next) => {
-    console.log('--- Incoming Request ---');
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-    console.log('Params:', JSON.stringify(req.params, null, 2));
-    console.log('Query:', JSON.stringify(req.query, null, 2));
-    console.log('------------------------');
-    next();
-  });
+  app.use(cors({
+    origin: 'https://fit-tracker.fyi',
+    credentials: true
+  }));
+  app.use(bodyParser.json());
+  app.use(morgan('dev'));
+  app.use((req, res, next) => {
+      console.log('--- Incoming Request ---');
+      console.log('Headers:', JSON.stringify(req.headers, null, 2));
+      console.log('Body:', JSON.stringify(req.body, null, 2));
+      console.log('Params:', JSON.stringify(req.params, null, 2));
+      console.log('Query:', JSON.stringify(req.query, null, 2));
+      console.log('------------------------');
+      next();
+    });
 
   // CORS
   app.use(cors({

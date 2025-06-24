@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 
 import { AuthService, AuthServiceDependencies, LoginResponse } from './authService.interface';
-import { UserModel } from '../../models/userModel';
 import { RegisterDTO } from '../../interfaces/dto/registerDTO';
 import { LoginDTO } from '../../interfaces/dto/loginDTO';
 import { signPayload } from '../../utils/jwt';

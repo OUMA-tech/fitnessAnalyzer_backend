@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { createApp } from './app';
-import connectDB from './config/database';
 
 
 // console.log(process.env.TOKEN_SECRET_KEY);

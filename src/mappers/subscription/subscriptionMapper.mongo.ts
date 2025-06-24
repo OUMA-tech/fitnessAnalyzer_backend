@@ -30,6 +30,7 @@ export const createMongoSubscriptionMapper = (SubscriptionModel: Model<Subscript
         cancelBySubscriptionId: async (subscriptionId: string) => {
             const result = await SubscriptionModel.findOneAndUpdate({ stripeSubscriptionId: subscriptionId }, { status: 'canceled' }, { new: true });
             return result !== null;
-        }
+        },
+        updateSubscription: (subscriptionId: string, subscription: Partial<SubscriptionDto>) => SubscriptionModel.findOneAndUpdate({ stripeSubscriptionId: subscriptionId }, subscription, { new: true }),
     }
 }

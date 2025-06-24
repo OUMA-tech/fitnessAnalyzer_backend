@@ -50,7 +50,7 @@ export const createHandleStripeWebhookController = (subscriptionQueue: Queue<Sub
                 return;
               }
               // 保存订阅信息到数据库
-              enqueueSubscriptionSync(subscriptionQueue,subscriptionId, userId);
+              enqueueSubscriptionSync(subscriptionQueue,subscriptionId);
             }
           
             if (reason === "subscription_create") {
