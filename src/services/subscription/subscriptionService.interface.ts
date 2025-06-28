@@ -7,9 +7,9 @@ export interface SubscriptionServiceDependencies {
 }
 
 export interface SubscriptionService {
-    createSubscription(subscription: Partial<SubscriptionDto>): Promise<SubscriptionModel>;
+    createSubscription(subscription: Partial<SubscriptionDto>): Promise<SubscriptionDto | null>;
     getUserSubscription(userId: string): Promise<SubscriptionDto | null>;
-    updateSubscription(userId: string, subscription: SubscriptionModel): Promise<SubscriptionModel | null>;
+    updateSubscription(userId: string, subscription: SubscriptionDto): Promise<SubscriptionDto | null>;
     deleteSubscriptionByStripeSubscriptionId(subscriptionId: string): Promise<void>;
 }
 

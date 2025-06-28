@@ -3,4 +3,5 @@ export interface RegisterDTO {
     email: string;
     password: string;
     verificationCode: string;
+    type: 'verification';
 }

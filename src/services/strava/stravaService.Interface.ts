@@ -1,6 +1,7 @@
 import { StravaActivityModel } from "../../models/stravaActivityModel";
 import { StravaActivityMapper } from "../../mappers/stravaActivity/stravaActivityMapper";
 import { UserMapper } from "../../mappers/user/userMapper";
+import { CryptoConfig, StravaConfig } from "../../config";
 
 export interface StravaService {
     getStravaActivities: (page: number, pageSize: number, filter: string) => Promise<{activities: StravaActivityModel[]; total: number}>;
@@ -13,4 +14,6 @@ export interface StravaService {
 export interface StravaServiceDependencies {
     stravaActivityMapper: StravaActivityMapper;
     userMapper: UserMapper;
+    cryptoConfig: CryptoConfig;
+    stravaConfig: StravaConfig;
 }

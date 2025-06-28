@@ -3,13 +3,15 @@ import Stripe from 'stripe';
 import { createStripeCustomerRedis } from '../mappers/stripeCustomer/stripeCustomerRedisMapper';
 import { enqueueSubscriptionSync, SubscriptionJob } from '../queues/subscriptionQueue';
 import { Queue } from 'bullmq';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil'
-});
+import { StripeConfig } from '../config';
 
 
-export const createHandleStripeWebhookController = (subscriptionQueue: Queue<SubscriptionJob>, stripeCustomerRedis: ReturnType<typeof createStripeCustomerRedis>) => {
+
+
+export const createHandleStripeWebhookController = (subscriptionQueue: Queue<SubscriptionJob>, stripeCustomerRedis: ReturnType<typeof createStripeCustomerRedis>, config:StripeConfig) => {
+  const stripe = new Stripe(config.secretKey, {
+    apiVersion: '2025-05-28.basil'
+  });
   return {
     stripeWebhookHandler: async (req: Request, res: Response) => {
       const sig = req.headers['stripe-signature'];
@@ -23,7 +25,7 @@ export const createHandleStripeWebhookController = (subscriptionQueue: Queue<Sub
         const event = stripe.webhooks.constructEvent(
           req.body,
           sig,
-          process.env.STRIPE_WEBHOOK_SECRET!
+          config.webhookSecret!
         );
     
         switch (event.type) {

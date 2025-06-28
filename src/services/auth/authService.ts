@@ -14,7 +14,7 @@ export const createAuthService =(dependencies: AuthServiceDependencies): AuthSer
         if (existingUser) {
         throw new Error('User already exists');
       }
-      const isCodeValid = await verificationService.verifyCode(userData.email, userData.verificationCode);
+      const isCodeValid = await verificationService.verifyCode(userData.email, userData.verificationCode, userData.type);
       if (!isCodeValid) {
         throw new Error('Invalid or expired verification code');
       }
@@ -35,12 +35,10 @@ export const createAuthService =(dependencies: AuthServiceDependencies): AuthSer
       if (!user) {
         throw new Error('User not found');
       }
-      console.log(user);
       const isPasswordValid = await bcrypt.compare(userData.password, user.password);
       if (!isPasswordValid) {
         throw new Error('Invalid password');
       }
-      console.log(typeof(jwtConfig.expiresIn));
       const payload = {
         id:user.id,
         username: user.username,
@@ -52,7 +50,6 @@ export const createAuthService =(dependencies: AuthServiceDependencies): AuthSer
       const token = signPayload(payload, jwtConfig.secret, jwtConfig.expiresIn);
 
       const subscription = await subscriptionService.getUserSubscription(user.id);
-      // console.log("1111111111111");
       return { user, token, subscription };
     },
 

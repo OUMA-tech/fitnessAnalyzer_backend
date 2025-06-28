@@ -1,7 +1,7 @@
-import { UserModel } from "../entity/user";
+import { UserDto } from "../entity/user";
 
 export interface LoginVO {
     message: string;
     token: string;
-    user: UserModel;
+    user: UserDto;
 }

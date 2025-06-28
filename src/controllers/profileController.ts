@@ -2,14 +2,17 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import { Request, Response } from 'express';
-import { s3 } from '../utils/AWS';
-import User from '../models/userModel'
+import { S3Client } from "@aws-sdk/client-s3";
 import { UserMapper } from "../mappers/user/userMapper";
 
-export const createProfileController = (userMapper:UserMapper) => {
+export const createProfileController = (userMapper:UserMapper, s3:S3Client) => {
   return {
     returnUploadUrl: async (req: Request, res: Response):Promise<void> => {
       try {
+        if(!req.body) {
+          res.status(400).json({ error: "Missing request body" });
+          return ;
+        }
         const { fileName, fileType } = req.body;
     
         if (!fileName || !fileType) {
@@ -39,6 +42,11 @@ export const createProfileController = (userMapper:UserMapper) => {
     },
 
     saveAvatar: async (req: Request, res: Response):Promise<void> => {
+      if(!req.body) {
+        res.status(400).json({ error: "Missing request body" });
+        return ;
+      }
+
 
       const userId = req.user?.id;
       const { key } = req.body;

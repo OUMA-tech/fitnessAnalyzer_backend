@@ -27,6 +27,28 @@ export interface StripeConfig {
     basicPriceId: string;
     proPriceId: string;
     appUrl: string;
+    webhookSecret: string;
+}
+
+export interface CryptoConfig {
+    key: string;
+    iv: string;
+}
+
+export interface StravaConfig {
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+}
+
+export interface AwsConfig {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+}
+
+export interface DatabaseConfig {
+    uri: string;
 }
 
 export const createConfig = () => {
@@ -55,6 +77,24 @@ export const createConfig = () => {
       basicPriceId: process.env.STRIPE_BASIC_PRICE_ID || '',
       proPriceId: process.env.STRIPE_PRO_PRICE_ID || '',
       appUrl: process.env.APP_URL || '',
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
     } as StripeConfig,
+    cryptoConfig: {
+      key: process.env.TOKEN_SECRET_KEY || '',
+      iv: process.env.TOKEN_IV || '',
+    } as CryptoConfig,
+    stravaConfig: {
+      clientId: process.env.STRAVA_CLIENT_ID || '',
+      clientSecret: process.env.STRAVA_CLIENT_SECRET || '',
+      redirectUri: process.env.STRAVA_REDIRECT_URI || '',
+    } as StravaConfig,
+    awsConfig: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      region: process.env.AWS_REGION || '',
+    } as AwsConfig,
+    databaseConfig: {
+      uri: process.env.MONGO_URI || '',
+    } as DatabaseConfig,
   };
 };

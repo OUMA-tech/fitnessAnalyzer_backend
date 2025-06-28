@@ -10,7 +10,6 @@ export const createStravaRoutes = (container: ApiContainer) => {
     const authMiddleware = container.authMiddleware;
     router.get('/', extractToken, authMiddleware.protect, stravaController.getStravaActivities);
     router.get('/callback', extractToken, authMiddleware.protect, stravaController.stravaCallback);
-    router.get('/webHook', stravaController.subscriptionValidation);
     router.post('/webHook', stravaController.stravaWebHook);
 
     return router;

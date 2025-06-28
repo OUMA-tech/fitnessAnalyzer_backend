@@ -1,7 +1,6 @@
-import { SubscriptionModel } from "../../models/subscriptionModel";
-import { SubscriptionService, SubscriptionServiceDependencies } from "./subscriptionService.interface";
 import { SubscriptionDto } from "../../interfaces/entity/subscription";
-
+import { SubscriptionService, SubscriptionServiceDependencies } from "./subscriptionService.interface";
+import { toClient } from "../../utils/toClient";
 export const createSubscriptionService = (dependencies: SubscriptionServiceDependencies): SubscriptionService => {
     const { subscriptionMapper } = dependencies;
     return {
@@ -10,11 +9,10 @@ export const createSubscriptionService = (dependencies: SubscriptionServiceDepen
             return createdSubscription;
         },
         getUserSubscription: async (userId: string) => {
-          console.log("11111111111111")
             const subscription = await subscriptionMapper.findByUserId(userId);
             return subscription;
         },
-        updateSubscription: async (userId: string, subscription: SubscriptionModel) => {
+        updateSubscription: async (userId: string, subscription: SubscriptionDto) => {
             const updatedSubscription = await subscriptionMapper.update(userId, subscription);
             return updatedSubscription;
         },

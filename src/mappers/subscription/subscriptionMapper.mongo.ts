@@ -20,13 +20,22 @@ export const createMongoSubscriptionMapper = (SubscriptionModel: Model<Subscript
           const res = await SubscriptionModel.findOne({ userId }).lean();
           return res? toSubscriptionDto(res) : null;
         },
-        create: (subscription: SubscriptionDto) => SubscriptionModel.create(subscription),
-        update: (id: string, subscription: SubscriptionModel) => SubscriptionModel.findByIdAndUpdate(id, subscription, { new: true }),
+        create: async (subscription: SubscriptionDto) => {
+          const res = await SubscriptionModel.create(subscription);
+          return res? toSubscriptionDto(res) : null;
+        },
+        update: async (id: string, subscription: SubscriptionDto) => {
+          const res = await SubscriptionModel.findByIdAndUpdate(id, subscription, { new: true });
+          return res? toSubscriptionDto(res) : null;
+        },
         deleteByStripeSubscriptionId: async (subscriptionId: string) => {
             const result = await SubscriptionModel.findOneAndDelete({ stripeSubscriptionId: subscriptionId })
             return result !== null;
         },
-        updateByUserId: (subscription: Partial<SubscriptionDto>) => SubscriptionModel.findOneAndUpdate({ userId: subscription.userId }, subscription, { new: true }),
+        updateByUserId: async (subscription: Partial<SubscriptionDto>) => {
+          const res = await SubscriptionModel.findOneAndUpdate({ userId: subscription.userId }, subscription, { new: true });
+          return res? toSubscriptionDto(res) : null;
+        },
         cancelBySubscriptionId: async (subscriptionId: string) => {
             const result = await SubscriptionModel.findOneAndUpdate({ stripeSubscriptionId: subscriptionId }, { status: 'canceled' }, { new: true });
             return result !== null;

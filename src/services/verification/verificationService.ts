@@ -23,9 +23,14 @@ export const createVerificationService = (dependencies: VerificationServiceDepen
 
   return {
     sendVerificationCode: async (email: string, type: 'verification' | 'password_reset') => {
+      if (!email) {
+        console.error('Email must not be empty');
+        return false;
+      }
+      const key = generateRedisKey(email, type);
       try {
         const code = generateVerificationCode();
-        const key = generateRedisKey(email, type);
+        
         
         // 存储验证码到Redis，设置15分钟过期
         await redisClient.setex(key, VERIFICATION_CODE_EXPIRY, code);
@@ -38,17 +43,19 @@ export const createVerificationService = (dependencies: VerificationServiceDepen
           return false;
         }
       
-      return true;
-    } catch (error) {
-      console.error('Error sending verification code:', error);
-      return false;
-    }
+        return true;
+      } catch (error) {
+        console.error('Error sending verification code:', error);
+        await redisClient.del(key).catch(() => {});
+        return false;
+      }
     },
     verifyCode: async (
       email: string, 
       code: string, 
-      type: VerificationType = 'verification'
+      type: VerificationType
     ): Promise<boolean> => {
+      // TODO: now it is only for verification, we need to add password reset verification later
       try {
         const key = generateRedisKey(email, type);
 

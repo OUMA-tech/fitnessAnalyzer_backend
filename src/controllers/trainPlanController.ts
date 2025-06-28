@@ -9,15 +9,24 @@ export const createTrainPlanController = (trainPlanService: TrainPlanService) =>
         const userId = req.user?.id;
         const tasks = req.body.tasks;
 
-        const {insertedTrainPlans, insertedSubTasks} = await trainPlanService.createTrainPlansWithSubtasks(userId, tasks);
-        console.log(`✅ insert  ${insertedTrainPlans.length} new trainPlans`);
-        console.log(`✅ insert  ${insertedSubTasks.length} new subTasks`);
-        res.status(200).json({
-          success:true,
-          message:'Insert train plans success',
-        })
+        const success = await trainPlanService.createTrainPlansWithSubtasks(userId, tasks);
+        if(success){
+          res.status(200).json({
+            success:true,
+            message:'Insert train plans success',
+          })
+        }else{
+          res.status(400).json({
+            success:false,
+            message:'Insert train plans failed',
+          })
+        }
       }catch(err){
         console.log(`insert failed: ${err}`);
+        res.status(400).json({
+          success:false,
+          message:'Insert train plans failed',
+        })
       }
     },
     fetchDurationPlan: async (req:Request, res:Response) => {

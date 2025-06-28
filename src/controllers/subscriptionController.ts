@@ -52,7 +52,15 @@ export const createSubscriptionController = (subscriptionService: SubscriptionSe
     },
     getSubscription: async (req: AuthRequest, res: Response) => {
       try {
-        const userId = req.user!.id;
+        if (!req.user) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+        }
+        const userId = req.user.id;
+        if (!userId) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+        }
         const subscription = await subscriptionService.getUserSubscription(userId);
     
         res.json(subscription);

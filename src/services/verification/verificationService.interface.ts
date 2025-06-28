@@ -4,7 +4,7 @@ import Redis from "ioredis";
 
 export interface VerificationService {
     sendVerificationCode(email: string, type: 'verification' | 'password_reset'): Promise<boolean>;
-    verifyCode(email: string, code: string): Promise<boolean>;
+    verifyCode(email: string, code: string, type: 'verification' | 'password_reset'): Promise<boolean>;
 }
 
 export interface VerificationServiceDependencies {

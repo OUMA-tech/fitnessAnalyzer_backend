@@ -27,10 +27,14 @@ export const createTrainPlanService = (dependencies: TrainPlanServiceDependencie
                 const insertedSubTasks = await subTaskMapper.insertMany(subTasks);
                 await session.commitTransaction();
                 session.endSession();
-                return {insertedTrainPlans, insertedSubTasks};
+                if(insertedTrainPlans.length > 0 && insertedSubTasks.length > 0){
+                    return true;
+                }
+                return false;
             }catch(err){
                 await session.abortTransaction();
-                throw err;
+                console.error(err);
+                return false;
             }finally{
                 await session.endSession();
             }

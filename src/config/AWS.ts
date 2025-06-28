@@ -1,18 +1,33 @@
 import "dotenv/config";
-import { fromNodeProviderChain  } from "@aws-sdk/credential-providers";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedCookies } from "@aws-sdk/cloudfront-signer";
-import fs from 'fs';
-import path from 'path';
+import { AwsConfig } from ".";
+import { SESClient } from "@aws-sdk/client-ses";
+import { SesConfig } from ".";
+
+// 创建 SES 客户端
+export const createSesClient = (config: SesConfig) => {
+    const sesClient = new SESClient({
+    region: config.region,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey
+    }
+  });
+  return sesClient;
+}
 
 
-export const s3 = new S3Client({
-  region: 'ap-southeast-2',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+
+export const createS3Client = (config: AwsConfig) => {
+  return new S3Client({
+    region: config.region,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+  });
+};
 
 export const returnSignedCookies = () => {
 

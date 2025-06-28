@@ -24,5 +24,5 @@ export interface AuthServiceDependencies {
 export interface AuthService {
     register(userData: RegisterDTO): Promise<UserDto>;
     login(credentials: LoginDTO): Promise<LoginResponse>;
-    sendVerificationCode(email: string): Promise<boolean>;
+    sendVerificationCode(email: string, type: 'verification' | 'password_reset'): Promise<boolean>;
 }

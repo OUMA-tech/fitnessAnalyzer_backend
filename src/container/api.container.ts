@@ -12,7 +12,7 @@ import { createEmailQueue } from '../queues/emailQueue';
 import connectDB from '../config/database';
 import StravaActivity from '../models/stravaActivityModel';
 import { createMongoStravaActivityMapper } from '../mappers/stravaActivity/stravaActivityMapper.mongo';
-import { createStravaService } from '../services/stravaActivity/stravaService';
+import { createStravaService } from '../services/strava/stravaService';
 import { createMongoTrainPlanMapper } from '../mappers/trainPlan/trainPlanMapper.mongo';
 import TrainPlan from '../models/trainPlanModel';
 import { createTrainPlanService } from '../services/trainPlan/trainPlanService';
@@ -24,12 +24,13 @@ import { createStripeService } from '../services/stripe/stripeService';
 import { createAuthMiddleware } from '../middlewares/authMiddleware';
 import { createStripeCustomerRedis } from '../mappers/stripeCustomer/stripeCustomerRedisMapper';
 import { createSubscriptionQueue } from '../queues/subscriptionQueue';
+import { createS3Client } from '../config/AWS';
 
 export const createApiContainer = async () => {
 
-  await connectDB();
-
   const config = createConfig();
+
+  await connectDB(config.databaseConfig);
 
   const redisClient = createRedisClient(config.redisConfig);
 
@@ -39,6 +40,7 @@ export const createApiContainer = async () => {
 
   const {stripe, SUBSCRIPTION_PLANS, appUrl} = createStripeClient(config.stripeConfig);
 
+  const s3 = createS3Client(config.awsConfig);
  
   // 1. create mappers
   const userMapper = createMongoUserMapper(User);
@@ -72,7 +74,9 @@ export const createApiContainer = async () => {
 
   const stravaService = createStravaService({
     stravaActivityMapper,
-    userMapper
+    userMapper,
+    cryptoConfig: config.cryptoConfig,
+    stravaConfig: config.stravaConfig
   });
 
   const trainPlanService = createTrainPlanService({
@@ -100,6 +104,8 @@ export const createApiContainer = async () => {
   return {
     // redis
     redisClient,
+    // s3
+    s3,
     // queues
     emailQueue,
     subscriptionQueue,

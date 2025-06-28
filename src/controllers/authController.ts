@@ -2,12 +2,6 @@ import { Request, Response } from 'express';
 import User from '../models/userModel';
 import { AuthService } from '../services/auth/authService.interface';
 
-const DEFAULT_SUBSCRIPTION = {
-  status: 'free',
-  planId: null,
-  currentPeriodEnd: null,
-  cancelAtPeriodEnd: false
-};
 
 export const createAuthController = (authService: AuthService) => {
 
@@ -15,7 +9,7 @@ export const createAuthController = (authService: AuthService) => {
     register: async (req: Request, res: Response) => {
       try {
         const { username, email, password, verificationCode } = req.body;
-        const user = await authService.register({ username, email, password, verificationCode });
+        const user = await authService.register({ username, email, password, verificationCode, type: 'verification' });
         res.status(201).json({ message: 'User registered successfully!' });
       } catch (error) {
         console.error('Registration error:', error);
@@ -25,7 +19,6 @@ export const createAuthController = (authService: AuthService) => {
     login: async (req: Request, res: Response) => {
       try {
         const { email, password } = req.body;
-        console.log(email,password);
         const { user, token, subscription } = await authService.login({ email, password });
         res.status(200).json({
           message: 'Login successful!',
@@ -64,7 +57,7 @@ export const createAuthController = (authService: AuthService) => {
         }
         
         // 发送验证码
-        const sent = await authService.sendVerificationCode(email);
+        const sent = await authService.sendVerificationCode(email, 'verification');
         if (sent) {
           res.status(200).json({ message: 'Verification code sent' });
         } else {
