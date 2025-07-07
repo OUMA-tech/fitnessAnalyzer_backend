@@ -2,7 +2,7 @@ import { SubscriptionDto } from "../../interfaces/entity/subscription";
 import { SubscriptionService, SubscriptionServiceDependencies } from "./subscriptionService.interface";
 import { toClient } from "../../utils/toClient";
 export const createSubscriptionService = (dependencies: SubscriptionServiceDependencies): SubscriptionService => {
-    const { subscriptionMapper } = dependencies;
+    const { subscriptionMapper, stripeService } = dependencies;
     return {
         createSubscription: async (subscription: SubscriptionDto) => {
             const createdSubscription = await subscriptionMapper.create(subscription);
@@ -19,5 +19,20 @@ export const createSubscriptionService = (dependencies: SubscriptionServiceDepen
         deleteSubscriptionByStripeSubscriptionId: async (subscriptionId: string) => {
             await subscriptionMapper.deleteByStripeSubscriptionId(subscriptionId);
         },
+        getSubscriptionHistory: async (userId: string) => {
+            const subscriptionHistory = await subscriptionMapper.findByUserIdHistory(userId);
+            return subscriptionHistory;
+        },
+        updateSubscriptionFromStripe: async (sessionId: string) => {
+            const subscription = await stripeService.getSubscriptionFromSession(sessionId);
+            if (!subscription) {
+                return false;
+            }
+            await subscriptionMapper.updateSubscription(subscription.id, {
+                stripeSubscriptionId: subscription.id,
+                planId: subscription.items.data[0].plan.id,
+            });
+            return true;
+        }
     }
 }

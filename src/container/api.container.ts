@@ -4,6 +4,7 @@ import { createAuthService } from '../services/auth/authService';
 import { createConfig, JwtConfig } from '../config/index';
 import User from '../models/userModel';
 import Subscription from '../models/subscriptionModel';
+import { SubscriptionPlanModel } from '../models/subscriptionPlansModel';
 import { createMongoSubscriptionMapper } from '../mappers/subscription/subscriptionMapper.mongo';
 import { createSubscriptionService } from '../services/subscription/subscriptionService';
 import { createRedisClient } from '../config/redis';
@@ -25,6 +26,7 @@ import { createAuthMiddleware } from '../middlewares/authMiddleware';
 import { createStripeCustomerRedis } from '../mappers/stripeCustomer/stripeCustomerRedisMapper';
 import { createSubscriptionQueue } from '../queues/subscriptionQueue';
 import { createS3Client } from '../config/AWS';
+import { createMongoSubscriptionPlansMapper } from '../mappers/subscriptionPlans/subscriptionPlans.mongo';
 
 export const createApiContainer = async () => {
 
@@ -55,9 +57,20 @@ export const createApiContainer = async () => {
 
   const stripeCustomerRedis = createStripeCustomerRedis(redisClient, userMapper);
 
+  const subscriptionPlansMapper = createMongoSubscriptionPlansMapper(SubscriptionPlanModel);
   // 2. create services
+
+  const stripeService = createStripeService({
+    stripe,
+    appUrl,
+    subscriptionMapper,
+    userMapper,
+    stripeCustomerRedis
+  });
+  
   const subscriptionService = createSubscriptionService({
-    subscriptionMapper
+    subscriptionMapper,
+    stripeService
   });
 
   const verificationService = createVerificationService({
@@ -88,13 +101,7 @@ export const createApiContainer = async () => {
     stravaActivityMapper
   });
 
-  const stripeService = createStripeService({
-    stripe,
-    appUrl,
-    subscriptionMapper,
-    userMapper,
-    stripeCustomerRedis
-  });
+
 
   // middleware
   const authMiddleware = createAuthMiddleware(config.jwtConfig, userMapper);
@@ -113,6 +120,7 @@ export const createApiContainer = async () => {
     userMapper,
     subscriptionMapper,
     stripeCustomerRedis,
+    subscriptionPlansMapper,
     // services
     authService,
     subscriptionService,

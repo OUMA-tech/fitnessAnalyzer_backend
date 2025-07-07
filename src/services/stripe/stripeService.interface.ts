@@ -10,6 +10,8 @@ export interface StripeService {
     createSubscription: (userId: string, priceId: string) => Promise<string | null>;
     cancelSubscription: (subscriptionId: string) => Promise<boolean>;
     updateSubscription: (userId: string, priceId: string) => Promise<string | null>;
+    verifyCheckoutSession: (sessionId: string) => Promise<Stripe.Checkout.Session | null>;
+    getSubscriptionFromSession: (sessionId: string) => Promise<Stripe.Subscription | null>;
 }
 
 export interface StripeServiceDependencies {

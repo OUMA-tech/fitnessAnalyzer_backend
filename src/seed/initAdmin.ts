@@ -1,12 +1,12 @@
-import User from '../models/userModel';
+import { UserMapper } from '../mappers/user/userMapper';
 import bcrypt from 'bcrypt';
 
-export const createRootAdmin = async () => {
-  const existing = await User.findOne({ email: 'admin@example.com' });
+export const createRootAdmin = async (userMapper:UserMapper) => {
+  const existing = await userMapper.findByEmail('admin@example.com');
   if (!existing) {
     const hashedDefaultPassword = await bcrypt.hash('admin123', 10); // 推荐放到 .env 里
 
-    await User.create({
+    await userMapper.create({
       username: 'admin',
       email: 'admin@example.com',
       password: hashedDefaultPassword,

@@ -18,8 +18,8 @@ export const createStripeService = (dependencies: StripeServiceDependencies): St
             customer: customerId,
             line_items: [{ price: priceId, quantity: 1 }],
             mode: 'subscription',
-            success_url: `${appUrl}/success`,
-            cancel_url: `${appUrl}/cancel`,
+            success_url: `${appUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${appUrl}/subscription/cancel`,
             metadata: {
                 userId: userId,
                 priceId: priceId,
@@ -48,7 +48,6 @@ export const createStripeService = (dependencies: StripeServiceDependencies): St
                     payment_behavior: 'default_incomplete',
                     expand: ['latest_invoice.payment_intent'],
                 });
-            
                 const checkoutSession = await createCheckoutSession(customerId, userId, priceId);
                 if (!checkoutSession) {
                     throw new Error('Checkout session not created');
@@ -81,5 +80,17 @@ export const createStripeService = (dependencies: StripeServiceDependencies): St
 
             return updatedSubscription.id;
           },
+          verifyCheckoutSession: async (sessionId: string) => {
+            const session = await stripe.checkout.sessions.retrieve(sessionId);
+            return session;
+          },
+          getSubscriptionFromSession: async (sessionId: string) => {
+            const session = await stripe.checkout.sessions.retrieve(sessionId);
+            if (session.subscription && session.payment_status === 'paid' && session.status === 'complete') {
+              const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+              return subscription;
+            }
+            return null;
+          }
     };
 };

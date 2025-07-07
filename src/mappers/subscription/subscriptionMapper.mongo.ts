@@ -41,5 +41,9 @@ export const createMongoSubscriptionMapper = (SubscriptionModel: Model<Subscript
             return result !== null;
         },
         updateSubscription: (subscriptionId: string, subscription: Partial<SubscriptionDto>) => SubscriptionModel.findOneAndUpdate({ stripeSubscriptionId: subscriptionId }, subscription, { new: true }),
+        findByUserIdHistory: async (userId: string) => {
+            const res = await SubscriptionModel.find({ userId }).lean();
+            return res.map(toSubscriptionDto);
+        }
     }
 }

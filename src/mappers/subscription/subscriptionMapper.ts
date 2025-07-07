@@ -10,4 +10,5 @@ export interface SubscriptionMapper {
     updateByUserId: (subscription: Partial<SubscriptionDto>) => Promise<SubscriptionDto | null>;
     cancelBySubscriptionId: (subscriptionId: string) => Promise<boolean>;
     updateSubscription: (subscriptionId: string, subscription: Partial<SubscriptionDto>) => Promise<SubscriptionModel | null>;
+    findByUserIdHistory: (userId: string) => Promise<SubscriptionDto[]>;
 }
