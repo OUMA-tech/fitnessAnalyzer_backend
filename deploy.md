@@ -30,6 +30,7 @@ Migrate the backend from **Render** to **AWS Elastic Beanstalk**, allowing:
 - Created a new EB environment using the **Amazon Linux 2023 + Node.js** platform
 - Used EB CLI for environment management
 - Created `.platform/nginx/conf.d/ssl_site.conf` to handle HTTPS and reverse proxy
+- Add env variable to EB environment
 
 ### 2. Docker + Redis Configuration
 

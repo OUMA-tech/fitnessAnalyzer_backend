@@ -22,7 +22,7 @@ jobs:
         run: npm ci
 
       - name: Build TypeScript
-        run: npm run build
+        run: npm run build && cp src/swagger.yaml dist/swagger.yaml
 
       - name: Generate .ebextensions/ssl.config with certificate
         env:
