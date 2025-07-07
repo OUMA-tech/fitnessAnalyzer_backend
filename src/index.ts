@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { startServer } from './startServer';
-import { seedDefaultPlans } from './seed/defaultSubscriptionPlans';
 
 (async () => {
   try {
