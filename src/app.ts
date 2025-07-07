@@ -18,7 +18,7 @@ export const createApp = async (container: ApiContainer): Promise<Application> =
   app.use('/webhook/stripe', express.raw({ type: 'application/json' }), createStripeWebhookRoutes(container.subscriptionQueue, container.stripeCustomerRedis, container));
 
   app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://fit-tracker.fyi',
     credentials: true,
   }));
 
