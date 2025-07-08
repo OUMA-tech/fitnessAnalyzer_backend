@@ -14,6 +14,7 @@ export const createHandleStripeWebhookController = (subscriptionQueue: Queue<Sub
   });
   return {
     stripeWebhookHandler: async (req: Request, res: Response) => {
+      console.log('stripeWebhookHandler',req.body);
       const sig = req.headers['stripe-signature'];
       
       if (!sig) {
@@ -39,7 +40,6 @@ export const createHandleStripeWebhookController = (subscriptionQueue: Queue<Sub
           case 'invoice.payment_succeeded':
             console.log('invoice.payment_succeeded'); 
             const invoice = event.data.object as Stripe.Invoice & { subscription?: string };
-            console.log('Invoice received:', invoice);
     
             const reason = invoice.billing_reason;
             if (invoice.billing_reason === 'subscription_update') {
@@ -82,7 +82,7 @@ export const createHandleStripeWebhookController = (subscriptionQueue: Queue<Sub
         res.send({ received: true });
       } catch (error) {
         console.error('Webhook error:', error);
-        res.status(400).send({ message: 'Webhook error' });
+        res.status(400).send({ message: 'Webhook error',error:error });
       }
     },
   };
