@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "pm2-runtime ecosystem.config.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "serve": "node dist/index.js",
@@ -60,6 +60,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
     "nodemailer": "^7.0.3",
+    "pm2": "^6.0.8",
     "stripe": "^18.2.1",
     "swagger-ui-express": "^5.0.1",
     "xss": "^1.0.15",
